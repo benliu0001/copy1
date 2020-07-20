@@ -112,13 +112,22 @@ void load_firmware(void)
 {
   int frame_length = 0;
   int read = 0;
+  int frame_number_compare = 0;
   uint32_t rcv = 0;
-  
+  char[16] tag;
+  char[16] iv;
+  void* key;
+  size_t iv_length, key_length;
   uint32_t data_index = 0;
   uint32_t page_addr = FW_BASE;
   uint32_t version = 0;
   uint32_t size = 0;
-
+  // Initiate context structs for GCM
+  br_aes_ct_ctr_keys ctrc;
+  br_gcm_context gcmc;
+  // Create contexts for cipher
+  br_aes_ct_ctr(&ctrc,key,key_length);
+  br_gcm_init(&gcmc, &ctrc.table, br_ghash_ctmul32);
   // Get version.
   rcv = uart_read(UART1, BLOCKING, &read);
   version = (uint32_t)rcv;
@@ -128,7 +137,7 @@ void load_firmware(void)
   uart_write_str(UART2, "Received Firmware Version: ");
   uart_write_hex(UART2, version);
   nl(UART2);
-
+  
   // Get size.
   rcv = uart_read(UART1, BLOCKING, &read);
   size = (uint32_t)rcv;
@@ -160,9 +169,12 @@ void load_firmware(void)
   fw_release_message_address = (uint8_t *) (FW_BASE + size);
 
   uart_write(UART1, OK); // Acknowledge the metadata.
-
   /* Loop here until you can get all your characters and stuff */
   while (1) {
+    // Read the nonce.
+    for(int i = 0; i < 16; i++){
+      iv[i] = uart_read(UART1, BLOCKING, &read);
+    }
 
     // Get two bytes for the length.
     rcv = uart_read(UART1, BLOCKING, &read);
@@ -174,14 +186,44 @@ void load_firmware(void)
     uart_write_hex(UART2,(unsigned char)rcv);
     nl(UART2);
 
+    // Read the frame number
+    rcv = uart_read(UART1, BLOCKING, &read);
+    frame_number = (int)rcv << 8;
+    rcv = uart_read(UART1, BLOCKING, &read);
+    frame_number += (int)rcv;
+
     // Get the number of bytes specified
-    for (int i = 0; i < frame_length; ++i){
+    for (i = 0; i < frame_length; ++i){
         data[data_index] = uart_read(UART1, BLOCKING, &read);
         data_index += 1;
     } //for
 
+    //Read the Auth Tag
+    for (i = 0; i < 16; i++){
+        tag[i] = uart_read(UART1, BLOCKING, &read);
+    }
+    
     // If we filed our page buffer, program it
     if (data_index == FLASH_PAGESIZE || frame_length == 0) {
+      // Reset the GCM context
+      br_gcm_reset(&gcmc, iv, iv_length);
+      // Decrypt Data
+      br_gcm_flip(&gcmc);
+      br_gcm_run(&gcmc, 0, data, size_t data_length);
+      // Checks for authentication from the tag
+      if(!br_gcm_check_tag(&gcmc, tag)) {
+      return 1; 
+      } // if
+      // Decrypt the frame number
+      br_gcm_flip(&gcmc);
+      br_gcm_run(&gcmc, 0, frame_number, size_t frame_number_length);
+      // Check if the frame is in order
+      if(frame_number = frame_number_compare + 1){
+        frame_number_compare = frame_number;
+      }
+      else{
+        return 1;
+      } 
       // Try to write flash and check for error
       if (program_flash(page_addr, data, data_index)){
         uart_write(UART1, ERROR); // Reject the firmware
