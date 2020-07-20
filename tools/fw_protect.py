@@ -2,6 +2,7 @@
 Firmware Bundle-and-Protect Tool
 
 """
+
 import argparse
 import struct
 from Crypto.Cipher import AES
@@ -12,23 +13,39 @@ def protect_firmware(infile, outfile, version, message):
     # Load firmware binary from infile
     with open(infile, 'rb') as fp:
         firmware = fp.read()
-    
-    #Load key from secret_build_output.txt
-    
-    # Append null-terminated message to end of firmware
     firmware_and_message = firmware + message.encode() + b'\00'
+    lengthfirm = len(firmware) 
+    metadata = struct.pack('<HH', version, lengthfirm)
+    framenum = 1
+    #Load key from secret_build_output.txt
+    with open(secret_build_output.txt, 'rb') as sbo:
+        key = sbo.read()
+        #if we were to have a seed, would happen here??
 
-    # Pack version and size into two little-endian shorts
-    metadata = struct.pack('<HH', version, len(firmware))
-
-    # Append firmware and message to metadata
-    firmware_blob = metadata + firmware_and_message
-
-    
-    
-    # Write firmware blob to outfile
+    #write metadata to outfile
     with open(outfile, 'wb+') as outfile:
-        outfile.write(firmware_blob)
+        outfile.write(metadata)
+        
+    # split into 128 bytes and encrypting it 
+    for i in range(0,len(firmware_and_message),1024):
+        #double check the <h1024s??
+        frame = struct.pack('<h1024s',framenum,firmware_and_message[i:i+1024])
+        framenum+=1
+        frame_encrypt = AES.new(key, AES.MODE_GCM)
+        frame_encrypt.update(metadata)
+        ciphertext, tag = frame_encrypt.encrypt_and_digest(frame)
+        nonce = frame_encrypt.nonce
+        
+
+        #nonce | length ciphertext | length tag | ciphertext (within has framenum then firmware/release message) | tag
+        sendoverframe = struct.pack('<16s{0}shh{1}s{2}s'.format(len(ciphertext), len(tag)),len(nonce), nonce, len(ciphertext), len(tag), ciphertext, tag)
+
+
+        # Write the encrypted frame to outfile
+        with open(outfile, 'wb+') as outfile:
+            outfile.write(sendoverframe)
+    
+    
 
 
 if __name__ == '__main__':
