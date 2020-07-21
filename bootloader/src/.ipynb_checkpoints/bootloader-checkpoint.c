@@ -11,7 +11,8 @@
 
 // Application Imports
 #include "uart.h"
-
+#include "bearssl.h"
+#include <stdio.h> 
 
 // Forward Declarations
 void load_initial_firmware(void);
@@ -104,7 +105,7 @@ void load_initial_firmware(void) {
   program_flash(FW_BASE + (i * FLASH_PAGESIZE), ((unsigned char *) data) + (i * FLASH_PAGESIZE), size % FLASH_PAGESIZE);
 }
 
-
+// secret_build_output.txt
 /*
  * Load the firmware into flash.
  */
@@ -112,13 +113,31 @@ void load_firmware(void)
 {
   int frame_length = 0;
   int read = 0;
+  int* frame_number_compare = 0;
+  int* frame_number = 0;
+  int i;
   uint32_t rcv = 0;
-  
+  char tag[16];
+  size_t frame_number_length, data_length;
+  frame_number_length = 2;
+  char iv[16];
+  char key[16] = "This is a keyhhh";
+  size_t iv_length, key_length;
+  iv_length = 16;
+  key_length = 16;
   uint32_t data_index = 0;
   uint32_t page_addr = FW_BASE;
   uint32_t version = 0;
   uint32_t size = 0;
-
+  // Reads file for secret key  
+  // f = *fopen( "secret_build_output.txt" , "rt" );
+  // fclose( FILE *f );
+  // Initiate context structs for GCM
+  br_aes_ct_ctr_keys ctrc;
+  br_gcm_context gcmc;
+  // Create contexts for cipher
+  br_aes_ct_ctr_init(&ctrc,key,key_length);
+  br_gcm_init(&gcmc, &ctrc.vtable, br_ghash_ctmul32);
   // Get version.
   rcv = uart_read(UART1, BLOCKING, &read);
   version = (uint32_t)rcv;
@@ -128,7 +147,7 @@ void load_firmware(void)
   uart_write_str(UART2, "Received Firmware Version: ");
   uart_write_hex(UART2, version);
   nl(UART2);
-
+  
   // Get size.
   rcv = uart_read(UART1, BLOCKING, &read);
   size = (uint32_t)rcv;
@@ -160,9 +179,12 @@ void load_firmware(void)
   fw_release_message_address = (uint8_t *) (FW_BASE + size);
 
   uart_write(UART1, OK); // Acknowledge the metadata.
-
   /* Loop here until you can get all your characters and stuff */
   while (1) {
+    // Read the nonce.
+    for(i = 0; i < 16; i++){
+      iv[i] = uart_read(UART1, BLOCKING, &read);
+    }
 
     // Get two bytes for the length.
     rcv = uart_read(UART1, BLOCKING, &read);
@@ -174,14 +196,45 @@ void load_firmware(void)
     uart_write_hex(UART2,(unsigned char)rcv);
     nl(UART2);
 
+    // Read the frame number
+    rcv = uart_read(UART1, BLOCKING, &read);
+    *frame_number = (int)rcv << 8;
+    rcv = uart_read(UART1, BLOCKING, &read);
+    *frame_number += (int)rcv;
+
     // Get the number of bytes specified
-    for (int i = 0; i < frame_length; ++i){
+    for (i = 0; i < frame_length; ++i){
         data[data_index] = uart_read(UART1, BLOCKING, &read);
         data_index += 1;
     } //for
 
+    //Read the Auth Tag
+    for (i = 0; i < 16; i++){
+        tag[i] = uart_read(UART1, BLOCKING, &read);
+    }
+    
     // If we filed our page buffer, program it
     if (data_index == FLASH_PAGESIZE || frame_length == 0) {
+      // Reset the GCM context
+      br_gcm_reset(&gcmc, iv, iv_length);
+      // Decrypt Data
+      br_gcm_flip(&gcmc);
+      data_length = (size_t) data_index;
+      br_gcm_run(&gcmc, 0, data, data_length);
+      // Checks for authentication from the tag
+      if(!br_gcm_check_tag(&gcmc, tag)) {
+      return; 
+      } // if
+      // Decrypt the frame number
+      br_gcm_flip(&gcmc);
+      br_gcm_run(&gcmc, 0, frame_number, frame_number_length);
+      // Check if the frame is in order
+      if(*frame_number == *frame_number_compare + 1){
+        *frame_number_compare = *frame_number;
+      }
+      else{
+        return;
+      } 
       // Try to write flash and check for error
       if (program_flash(page_addr, data, data_index)){
         uart_write(UART1, ERROR); // Reject the firmware

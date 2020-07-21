@@ -121,7 +121,7 @@ void load_firmware(void)
   size_t frame_number_length, data_length;
   frame_number_length = 2;
   char iv[16];
-  char key[16] = "This is a key";
+  char key[16] = "This is a keyhhh";
   size_t iv_length, key_length;
   iv_length = 16;
   key_length = 16;
