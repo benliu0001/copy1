@@ -23,9 +23,9 @@ def protect_firmware(infile, outfile, version, message):
         #if we were to have a seed, would happen here??
 
     #write metadata to outfile
-    with open(outfile, 'wb+') as outfile:
-        outfile.write(metadata)
-        
+    with open(outfile, 'wb+') as f:
+        f.write(metadata)
+      
     # split into 128 bytes and encrypting it 
     for i in range(0,len(firmware_and_message),1024):
         #double check the <h1024s??
@@ -42,6 +42,7 @@ def protect_firmware(infile, outfile, version, message):
 
 
         # Write the encrypted frame to outfile
+        open(outfile, "w").close()
         with open(outfile, 'r+b') as f:
             f.write(sendoverframe)
     
