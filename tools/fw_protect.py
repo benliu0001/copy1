@@ -23,15 +23,17 @@ def protect_firmware(infile, outfile, version, message):
         #if we were to have a seed, would happen here??
 
     #write metadata to outfile
-    with open(outfile, 'wab+') as outfile:
+
+    with open(outfile, 'ab') as outfile:
         outfile.write(metadata)
         
+
     # split into 128 bytes and encrypting it 
     for i in range(0,len(firmware_and_message),1024):
         #double check the <h1024s??
         frame = struct.pack('<h1024s',framenum,firmware_and_message[i:i+1024])
         framenum+=1
-        frame_encrypt = AES.new(key, AES.MODE_GCM)
+        frame_encrypt = AES.new("This is a keyhhh".encode(), AES.MODE_GCM)
         frame_encrypt.update(metadata)
         ciphertext, tag = frame_encrypt.encrypt_and_digest(frame)
         nonce = frame_encrypt.nonce
@@ -42,8 +44,11 @@ def protect_firmware(infile, outfile, version, message):
 
 
         # Write the encrypted frame to outfile
-        with open(outfile, 'ab+') as outfile:
-            outfile.write(sendoverframe)
+
+        open(outfile, "w").close()
+        with open(outfile, 'r+b') as f:
+            f.write(sendoverframe)
+
     
     
 
