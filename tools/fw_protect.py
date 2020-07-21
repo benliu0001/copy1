@@ -8,7 +8,7 @@ import struct
 from Crypto.Cipher import AES
 
 def protect_firmware(infile, outfile, version, message):
-    #128 bytes per 'frame'
+    #1 page per 'frame'
     
     # Load firmware binary from infile
     with open(infile, 'rb') as fp:
@@ -23,7 +23,7 @@ def protect_firmware(infile, outfile, version, message):
         #if we were to have a seed, would happen here??
 
     #write metadata to outfile
-    with open(outfile, 'wb+') as outfile:
+    with open(outfile, 'wab+') as outfile:
         outfile.write(metadata)
         
     # split into 128 bytes and encrypting it 
@@ -42,7 +42,7 @@ def protect_firmware(infile, outfile, version, message):
 
 
         # Write the encrypted frame to outfile
-        with open(outfile, 'wb+') as outfile:
+        with open(outfile, 'wab+') as outfile:
             outfile.write(sendoverframe)
     
     
