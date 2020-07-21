@@ -10,7 +10,10 @@ import os
 import pathlib
 import shutil
 import subprocess
+<<<<<<< HEAD
 import binascii #for random hex key
+=======
+>>>>>>> 595b35fc1bc2549f41a1f4cc85467d2bba24cad9
 
 FILE_DIR = pathlib.Path(__file__).parent.absolute()
 
@@ -61,6 +64,7 @@ if __name__ == '__main__':
 
     copy_initial_firmware(binary_path)
     make_bootloader()
+<<<<<<< HEAD
 
 
 
@@ -72,3 +76,5 @@ fp.write(key1)  #write the key to the file
 
 fp.close() #close fp (secret_build_output.txt file)
 
+=======
+>>>>>>> 595b35fc1bc2549f41a1f4cc85467d2bba24cad9
