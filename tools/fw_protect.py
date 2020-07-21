@@ -59,113 +59,113 @@ if __name__ == '__main__':
     protect_firmware(infile=args.infile, outfile=args.outfile, version=int(args.version), message=args.message)
 
 
-'''
-#stream cipher: KSA() is function for making key - K
-#               PRGA() is function for making initial vector - S
+# '''
+# #stream cipher: KSA() is function for making key - K
+# #               PRGA() is function for making initial vector - S
 
-MOD = 256
+# MOD = 256
 
-def KSA(key):
-'''
-''' Key Scheduling Algorithm (from wikipedia):
-    for i from 0 to 255
-        S[i] := i
-    endfor
-    j := 0
-    for i from 0 to 255
-        j := (j + S[i] + key[i mod keylength]) mod 256
-        swap values of S[i] and S[j]
-    endfor
-'''
-'''
-  key_length = len(key)
-  # create the array "S"
-  S = range(MOD)  # [0,1,2, ... , 255]
-  j = 0
-  for i in range(MOD):
-    j = (j + S[i] + key[i % key_length]) % MOD
-    S[i], S[j] = S[j], S[i]  # swap values
+# def KSA(key):
+# '''
+# ''' Key Scheduling Algorithm (from wikipedia):
+#     for i from 0 to 255
+#         S[i] := i
+#     endfor
+#     j := 0
+#     for i from 0 to 255
+#         j := (j + S[i] + key[i mod keylength]) mod 256
+#         swap values of S[i] and S[j]
+#     endfor
+# '''
+# '''
+#   key_length = len(key)
+#   # create the array "S"
+#   S = range(MOD)  # [0,1,2, ... , 255]
+#   j = 0
+#   for i in range(MOD):
+#     j = (j + S[i] + key[i % key_length]) % MOD
+#     S[i], S[j] = S[j], S[i]  # swap values
 
-  return S
-
-
-def PRGA(S):
-'''
-''' Psudo Random Generation Algorithm (from wikipedia):
-    i := 0
-    j := 0
-    while GeneratingOutput:
-        i := (i + 1) mod 256
-        j := (j + S[i]) mod 256
-        swap values of S[i] and S[j]
-        K := S[(S[i] + S[j]) mod 256]
-        output K
-    endwhile
-'''
-'''
-  i = 0
-  j = 0
-  while True:
-    i = (i + 1) % MOD
-    j = (j + S[i]) % MOD
-
-    S[i], S[j] = S[j], S[i]  # swap values
-    K = S[(S[i] + S[j]) % MOD]
-    yield K
+#   return S
 
 
-def get_keystream(key):
-    '''
-    ''' Takes the encryption key to get the keystream using PRGA
-        return object is a generator
-    '''
-    '''
-  S = KSA(key)
-  return PRGA(S)
+# def PRGA(S):
+# '''
+# ''' Psudo Random Generation Algorithm (from wikipedia):
+#     i := 0
+#     j := 0
+#     while GeneratingOutput:
+#         i := (i + 1) mod 256
+#         j := (j + S[i]) mod 256
+#         swap values of S[i] and S[j]
+#         K := S[(S[i] + S[j]) mod 256]
+#         output K
+#     endwhile
+# '''
+# '''
+#   i = 0
+#   j = 0
+#   while True:
+#     i = (i + 1) % MOD
+#     j = (j + S[i]) % MOD
+
+#     S[i], S[j] = S[j], S[i]  # swap values
+#     K = S[(S[i] + S[j]) % MOD]
+#     yield K
 
 
-#function to encrypt plaintext (eventually firmware?) with key from secret...txt file: encrypy()
-#func to decrypt: decryption using key from secret_build_output.txt file and ciphertext:
+# def get_keystream(key):
+#     '''
+#     ''' Takes the encryption key to get the keystream using PRGA
+#         return object is a generator
+#     '''
+#     '''
+#   S = KSA(key)
+#   return PRGA(S)
 
-def encrypt(keystream, plaintext):    
-  res = []
-  for c in plaintext:
-    val = ("%02X" % (ord(c) ^ next(keystream)))  # XOR and taking hex
-    res.append(val)
-  return ''.join(res)
+
+# #function to encrypt plaintext (eventually firmware?) with key from secret...txt file: encrypy()
+# #func to decrypt: decryption using key from secret_build_output.txt file and ciphertext:
+
+# def encrypt(keystream, plaintext):    
+#   res = []
+#   for c in plaintext:
+#     val = ("%02X" % (ord(c) ^ next(keystream)))  # XOR and taking hex
+#     res.append(val)
+#   return ''.join(res)
 
 
-def decrypt(keystream, ciphertext):
-    #keystream -> encryption key used for encrypting, as hex string
-     #ciphertext -> hex encoded ciphered text using RC4
+# def decrypt(keystream, ciphertext):
+#     #keystream -> encryption key used for encrypting, as hex string
+#      #ciphertext -> hex encoded ciphered text using RC4
     
-  ciphertext = ciphertext.decode('hex')
- # print('ciphertext to func:', ciphertext)
-  res = encrypt(keystream, ciphertext)
-  return res.decode('hex')
+#   ciphertext = ciphertext.decode('hex')
+#  # print('ciphertext to func:', ciphertext)
+#   res = encrypt(keystream, ciphertext)
+#   return res.decode('hex')
 
 
-#generate a keystream
-with open('secret_build_output.txt') as fp:
-  key1 = f.readline() #key is encryption key used for encrypting, as hex string
+# #generate a keystream
+# with open('secret_build_output.txt') as fp:
+#   key1 = f.readline() #key is encryption key used for encrypting, as hex string
 
-key2 = key1.decode('hex')
-key2 = [ord(c) for c in key]
+# key2 = key1.decode('hex')
+# key2 = [ord(c) for c in key]
 
-keystream = get_keystream(key2) #keystream is now generated
-
-
-# encrypt the plaintext, using key and RC4 algorithm
-plaintext = 'this is the plaintext'  # plaintext is what we will encrypt, replace it with firmware?
-ciphertext = encrypt(keystream, plaintext)
-#print('plaintext:', plaintext)
-#print('ciphertext:', ciphertext)
+# keystream = get_keystream(key2) #keystream is now generated
 
 
-#decrypt the firmware (will need this in later tool I think)
-decrypted = decrypt(keystream, ciphertext)
-#print('decrypted:', decrypted)
+# # encrypt the plaintext, using key and RC4 algorithm
+# plaintext = 'this is the plaintext'  # plaintext is what we will encrypt, replace it with firmware?
+# ciphertext = encrypt(keystream, plaintext)
+# #print('plaintext:', plaintext)
+# #print('ciphertext:', ciphertext)
+
+
+# #decrypt the firmware (will need this in later tool I think)
+# decrypted = decrypt(keystream, ciphertext)
+# #print('decrypted:', decrypted)
 
 
 
-'''
+# '''
