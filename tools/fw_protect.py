@@ -18,7 +18,7 @@ def protect_firmware(infile, outfile, version, message):
     metadata = struct.pack('<HH', version, lengthfirm)
     framenum = 1
     #Load key from secret_build_output.txt
-    with open(secret_build_output.txt, 'rb') as sbo:
+    with open('secret_build_output.txt', 'rb') as sbo:
         key = sbo.read()
         #if we were to have a seed, would happen here??
 
@@ -42,7 +42,7 @@ def protect_firmware(infile, outfile, version, message):
 
 
         # Write the encrypted frame to outfile
-        with open(outfile, 'wab+') as outfile:
+        with open(outfile, 'ab+') as outfile:
             outfile.write(sendoverframe)
     
     
