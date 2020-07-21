@@ -18,7 +18,7 @@ def protect_firmware(infile, outfile, version, message):
     metadata = struct.pack('<HH', version, lengthfirm)
     framenum = 1
     #Load key from secret_build_output.txt
-    with open(secret_build_output.txt, 'rb') as sbo:
+    with open('secret_build_output.txt', 'rb') as sbo:
         key = sbo.read()
         #if we were to have a seed, would happen here??
 
@@ -31,7 +31,7 @@ def protect_firmware(infile, outfile, version, message):
         #double check the <h1024s??
         frame = struct.pack('<h1024s',framenum,firmware_and_message[i:i+1024])
         framenum+=1
-        frame_encrypt = AES.new(key, AES.MODE_GCM)
+        frame_encrypt = AES.new("This is a key", AES.MODE_GCM)
         frame_encrypt.update(metadata)
         ciphertext, tag = frame_encrypt.encrypt_and_digest(frame)
         nonce = frame_encrypt.nonce
