@@ -195,9 +195,9 @@ void load_firmware(void)
     // Get two bytes for the length.
     rcv = uart_read(UART1, BLOCKING, &read);
     uart_write_str(UART2, " we good ");
-    ciphertext_length = (int)rcv << 8;
+    frame_length = (int)rcv << 8;
     rcv = uart_read(UART1, BLOCKING, &read);
-    ciphertext_length += (int)rcv;
+    frame_length += (int)rcv;
 
     // Write length debug message
     uart_write_hex(UART2,(unsigned char)rcv);
@@ -214,12 +214,6 @@ void load_firmware(void)
      uart_write_hex(UART2,(unsigned char)rcv);
      uart_write_str(UART2, " we good 4");
     
-      // Get two bytes for the length.
-    rcv = uart_read(UART1, BLOCKING, &read);
-    uart_write_str(UART2, " we good ");
-    frame_length = (int)rcv << 8;
-    rcv = uart_read(UART1, BLOCKING, &read);
-    frame_length += (int)rcv;
       
     // Get the number of bytes specified
     for (i = 0; i < frame_length; ++i){
