@@ -24,14 +24,15 @@ def protect_firmware(infile, outfile, version, message):
 
     #write metadata to outfile
 
-    with open(outfile, 'ab') as outfile:
-        outfile.write(metadata)
+    with open(outfile, 'ab') as f:
+        f.write(metadata)
         
 
-    # split into 128 bytes and encrypting it 
+    # split into 1024 bytes and encrypting it 
     for i in range(0,len(firmware_and_message),1024):
         #double check the <h1024s??
-        frame = struct.pack('<h1024s',framenum,firmware_and_message[i:i+1024])
+        whatwewant = firmware_and_message[i:i+1024]
+        frame = struct.pack('<h{}s'.format(len(whatwewant)),framenum,whatwewant)
         framenum+=1
         frame_encrypt = AES.new("This is a keyhhh".encode(), AES.MODE_GCM)
         frame_encrypt.update(metadata)
@@ -40,13 +41,11 @@ def protect_firmware(infile, outfile, version, message):
         
 
         #nonce | length ciphertext | ciphertext (within has framenum then firmware/release message) | tag
-        sendoverframe = struct.pack('<16sh{}s16s'.format(len(ciphertext)), nonce, len(ciphertext), ciphertext, tag)
+        sendoverframe = struct.pack('<16sh{}s16s'.format(len(ciphertext)), nonce, len(whatwewant), ciphertext, tag)
 
 
         # Write the encrypted frame to outfile
-
-        open(outfile, "w").close()
-        with open(outfile, 'r+b') as f:
+        with open(outfile, 'ab') as f:
             f.write(sendoverframe)
 
     
