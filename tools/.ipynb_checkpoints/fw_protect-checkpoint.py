@@ -42,8 +42,7 @@ def protect_firmware(infile, outfile, version, message):
 
 
         # Write the encrypted frame to outfile
-        open(outfile, "w").close()
-        with open(outfile, 'r+b') as f:
+        with open(outfile, 'ab') as f:
             f.write(sendoverframe)
     
     
