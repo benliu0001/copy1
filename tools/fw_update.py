@@ -74,7 +74,9 @@ def main(ser, infile, debug):
         firmware_blob = fp.read()
 
     metadata = firmware_blob[:4]
-    firmware = firmware_blob[4:]
+    #figure out how long hmac is
+    #hmac = firmware_blob[4:36]
+    firmware = firmware_blob[4:] #new line after HMAC is implemented: firmware = firmware_blob[36:]
 
     send_metadata(ser, metadata, debug=debug)
 
