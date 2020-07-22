@@ -24,8 +24,8 @@ def protect_firmware(infile, outfile, version, message):
 
     #write metadata to outfile
 
-    with open(outfile, 'ab') as outfile:
-        outfile.write(metadata)
+    with open(outfile, 'ab') as f:
+        f.write(metadata)
         
 
     # split into 128 bytes and encrypting it 
