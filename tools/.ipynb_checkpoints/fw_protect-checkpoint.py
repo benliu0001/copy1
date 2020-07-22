@@ -41,7 +41,7 @@ def protect_firmware(infile, outfile, version, message):
         
 
         #nonce | length ciphertext | ciphertext (within has framenum then firmware/release message) | tag
-        sendoverframe = struct.pack('<16sh{}s16s'.format(len(ciphertext)), nonce, len(ciphertext), ciphertext, tag)
+        sendoverframe = struct.pack('<16sh{}s16s'.format(len(ciphertext)), nonce, len(whatwewant), ciphertext, tag)
 
 
         # Write the encrypted frame to outfile
