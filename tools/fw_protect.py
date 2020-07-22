@@ -6,6 +6,15 @@ Firmware Bundle-and-Protect Tool
 import argparse
 import struct
 from Crypto.Cipher import AES
+from Crypto.Hash import HMAC, SHA256
+import os
+
+#def get_HMAC(data, key):
+#   secret = key
+#   h = HMAC.new(secret, digestmod=SHA256)
+#   h.update(data)
+#   return h.digest()
+#   #make sure it works on the bootloader side
 
 def protect_firmware(infile, outfile, version, message):
     #1 page per 'frame'
@@ -16,6 +25,9 @@ def protect_firmware(infile, outfile, version, message):
     firmware_and_message = firmware + message.encode() + b'\00'
     lengthfirm = len(firmware) 
     metadata = struct.pack('<HH', version, lengthfirm)
+    #we gotta make an HMAC_Key
+    #HMAC_Key = 'iudffgeuijheraiujkhagrehjnikrgenjk'
+    #hmac = get_HMAC(metadata, HMAC_key)
     framenum = 1
     #Load key from secret_build_output.txt
     with open('secret_build_output.txt', 'rb') as sbo:
@@ -26,6 +38,7 @@ def protect_firmware(infile, outfile, version, message):
 
     with open(outfile, 'ab') as f:
         f.write(metadata)
+
         
 
     # split into 1024 bytes and encrypting it 
@@ -45,6 +58,7 @@ def protect_firmware(infile, outfile, version, message):
 
 
         # Write the encrypted frame to outfile
+
         with open(outfile, 'ab') as f:
             f.write(sendoverframe)
 
