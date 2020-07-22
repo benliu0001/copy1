@@ -11,7 +11,8 @@
 
 // Application Imports
 #include "uart.h"
-
+#include "bearssl.h"
+#include <stdio.h> 
 
 // Forward Declarations
 void load_initial_firmware(void);
@@ -104,7 +105,7 @@ void load_initial_firmware(void) {
   program_flash(FW_BASE + (i * FLASH_PAGESIZE), ((unsigned char *) data) + (i * FLASH_PAGESIZE), size % FLASH_PAGESIZE);
 }
 
-
+// secret_build_output.txt
 /*
  * Load the firmware into flash.
  */
@@ -129,9 +130,7 @@ void load_firmware(void)
   uint32_t page_addr = FW_BASE;
   uint32_t version = 0;
   uint32_t size = 0;
-  // Reads file for secret key  
-  // f = *fopen( "secret_build_output.txt" , "rt" );
-  // fclose( FILE *f );
+  //V 0.6
     
   // Initiate context structs for GCM
   br_aes_ct_ctr_keys ctrc;
@@ -187,42 +186,41 @@ void load_firmware(void)
     // Read the nonce.
     for(i = 0; i < 16; i++){
       iv[i] = uart_read(UART1, BLOCKING, &read);
+      uart_write_hex(UART2,(unsigned char)iv[i]);
+      nl(UART2);
     }
 
     // Get two bytes for the length.
     rcv = uart_read(UART1, BLOCKING, &read);
-    uart_write_str(UART2, " we good ");
-    nl(UART2);
     frame_length = (int)rcv; 
-    rcv = uart_read(UART1, BLOCKING, &read);
-    frame_length += (int)rcv << 8;
-
-    // Write length debug message
     uart_write_hex(UART2,(unsigned char)rcv);
     nl(UART2);
-    uart_write_str(UART2, " we good ");
+    rcv = uart_read(UART1, BLOCKING, &read);
+    frame_length += (int)rcv << 8;
+      
+    uart_write_str(UART2,"hello");
+    // Write length debug message
+    uart_write_hex(UART2, rcv);
     nl(UART2);
+    uart_write_hex(UART2, frame_length);
+  
     // Read the frame number
     rcv = uart_read(UART1, BLOCKING, &read);
-    uart_write_str(UART2, " we good 2");
     *frame_number = (int)rcv;
-    uart_write_str(UART2, " we good 3");
     rcv = uart_read(UART1, BLOCKING, &read);
     *frame_number += (int)rcv << 8;
-     uart_write_str(UART2, " we good 4");
-    
+    uart_write_str(UART2,"hello1");
       
     // Get the number of bytes specified
     for (i = 0; i < frame_length; ++i){
         data[data_index] = uart_read(UART1, BLOCKING, &read);
         data_index += 1;
     } //for
-     uart_write_str(UART2, " we good ");
+      uart_write_str(UART2,"hello2");
     //Read the Auth Tag
     for (i = 0; i < 16; i++){
         tag[i] = uart_read(UART1, BLOCKING, &read);
     }
-    uart_write_str(UART2, " we good ");
     // If we filed our page buffer, program it
     if (data_index == FLASH_PAGESIZE || frame_length == 0) {
       // Reset the GCM context
@@ -252,7 +250,6 @@ void load_firmware(void)
         SysCtlReset(); // Reset device
         return;
       }
-     uart_write_str(UART2, " we good ");
 #if 1
       // Write debugging messages to UART2.
       uart_write_str(UART2, "Page successfully programmed\nAddress: ");

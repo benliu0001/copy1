@@ -18,13 +18,13 @@ def protect_firmware(infile, outfile, version, message):
     metadata = struct.pack('<HH', version, lengthfirm)
     framenum = 1
     #Load key from secret_build_output.txt
-    with open('secret_build_output.txt', 'rb') as sbo:
-        key = sbo.read()
+   # with open('secret_build_output.txt', 'rb') as sbo:
+        #key = sbo.read()
         #if we were to have a seed, would happen here??
 
     #write metadata to outfile
 
-    with open(outfile, 'ab') as f:
+    with open(outfile, 'wb') as f:
         f.write(metadata)
         
 
@@ -32,24 +32,19 @@ def protect_firmware(infile, outfile, version, message):
     for i in range(0,len(firmware_and_message),1024):
         #double check the <h1024s??
         whatwewant = firmware_and_message[i:i+1024]
-        frame = struct.pack('<h{}s'.format(len(whatwewant)),framenum,whatwewant)
+        frame = struct.pack('<H{}s'.format(len(whatwewant)),framenum,whatwewant)
         framenum+=1
         frame_encrypt = AES.new("This is a keyhhh".encode(), AES.MODE_GCM)
         frame_encrypt.update(metadata)
         ciphertext, tag = frame_encrypt.encrypt_and_digest(frame)
         nonce = frame_encrypt.nonce
-        
-
         #nonce | length ciphertext | ciphertext (within has framenum then firmware/release message) | tag
-        sendoverframe = struct.pack('<16sh{}s16s'.format(len(ciphertext)), nonce, len(whatwewant), ciphertext, tag)
-
-
+        sendoverframe = struct.pack('<16sH{}s16s'.format(len(ciphertext)), nonce, len(whatwewant), ciphertext, tag)
+        
         # Write the encrypted frame to outfile
-        with open(outfile, 'ab') as f:
-            f.write(sendoverframe)
-
-    
-    
+        with open(outfile, 'ab') as fb:
+            fb.write(sendoverframe)
+            
 
 
 if __name__ == '__main__':
