@@ -27,7 +27,7 @@ from serial import Serial
 RESP_OK = b'\x00'
 FRAME_SIZE = 16
 
-
+#when implimenting the HMAC - add hmac as another argument
 def send_metadata(ser, metadata, debug=False):
     version, size = struct.unpack_from('<HH', metadata)
     print(f'Version: {version}\nSize: {size} bytes\n')
@@ -44,7 +44,7 @@ def send_metadata(ser, metadata, debug=False):
         print(metadata)
 
     ser.write(metadata)
-
+    #ser.write(hmac)
     # Wait for an OK from the bootloader.
     resp = ser.read()
     if resp != RESP_OK:
