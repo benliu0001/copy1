@@ -113,6 +113,7 @@ void load_firmware(void)
 {
   int frame_length = 0;
   int read = 0;
+
   int* frame_number_compare = 0;
   int* frame_number = 0;
   int i;
@@ -125,22 +126,33 @@ void load_firmware(void)
   size_t iv_length, key_length;
   iv_length = 16;
   key_length = 16;
+
   uint32_t data_index = 0;
   uint32_t page_addr = FW_BASE;
   uint32_t version = 0;
   uint32_t size = 0;
+
   // Reads file for secret key  
   // f = *fopen( "secret_build_output.txt" , "rt" );
   // fclose( FILE *f );
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> e2bfd2a623e6bacdc7c2ebbcbaf7fcd894448d44
   // Initiate context structs for GCM
   br_aes_ct_ctr_keys ctrc;
   br_gcm_context gcmc;
     
   // Create contexts for cipher
+
   br_aes_ct_ctr_init(&ctrc,key,key_length);
   br_gcm_init(&gcmc, &ctrc.vtable, br_ghash_ctmul32);
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> e2bfd2a623e6bacdc7c2ebbcbaf7fcd894448d44
   // Get version.
   rcv = uart_read(UART1, BLOCKING, &read);
   version = (uint32_t)rcv;
@@ -185,7 +197,9 @@ void load_firmware(void)
   /* Loop here until you can get all your characters and stuff */
   while (1) {
     // Read the nonce.
+
     for(i = 0; i < 16; i++){
+
       iv[i] = uart_read(UART1, BLOCKING, &read);
     }
 
@@ -202,13 +216,22 @@ void load_firmware(void)
     // Read the frame number
     uart_write_str(UART2, " we good ");
     rcv = uart_read(UART1, BLOCKING, &read);
+<<<<<<< HEAD
     uart_write_str(UART2, " we good ");
+=======
+
+>>>>>>> e2bfd2a623e6bacdc7c2ebbcbaf7fcd894448d44
     *frame_number = (int)rcv << 8;
     uart_write_str(UART2, " we good ");
     rcv = uart_read(UART1, BLOCKING, &read);
     *frame_number += (int)rcv;
+<<<<<<< HEAD
      uart_write_hex(UART2,(unsigned char)rcv);
      uart_write_str(UART2, " we good ");
+=======
+
+
+>>>>>>> e2bfd2a623e6bacdc7c2ebbcbaf7fcd894448d44
     // Get the number of bytes specified
     for (i = 0; i < frame_length; ++i){
         data[data_index] = uart_read(UART1, BLOCKING, &read);
@@ -226,6 +249,7 @@ void load_firmware(void)
       br_gcm_reset(&gcmc, iv, iv_length);
       // Decrypt Data
       br_gcm_flip(&gcmc);
+
       data_length = (size_t) data_index;
       br_gcm_run(&gcmc, 0, data, data_length);
       // Checks for authentication from the tag
@@ -241,6 +265,7 @@ void load_firmware(void)
       }
       else{
         return;
+
       } 
       // Try to write flash and check for error
       if (program_flash(page_addr, data, data_index)){
