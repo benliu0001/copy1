@@ -11,8 +11,7 @@
 
 // Application Imports
 #include "uart.h"
-#include "bearssl.h"
-#include <stdio.h> 
+
 
 // Forward Declarations
 void load_initial_firmware(void);
@@ -105,7 +104,7 @@ void load_initial_firmware(void) {
   program_flash(FW_BASE + (i * FLASH_PAGESIZE), ((unsigned char *) data) + (i * FLASH_PAGESIZE), size % FLASH_PAGESIZE);
 }
 
-// secret_build_output.txt
+
 /*
  * Load the firmware into flash.
  */
