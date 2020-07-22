@@ -118,13 +118,15 @@ void load_firmware(void)
   int i;
   uint32_t rcv = 0;
   char tag[16];
-  size_t frame_number_length, data_length;
+  size_t frame_number_length, data_length, aad_length;
+  aad_length = 4;
   frame_number_length = 2;
   char iv[16];
   char key[16] = "This is a keyhhh";
   size_t iv_length, key_length;
   iv_length = 16;
   key_length = 16;
+  uint32_t ciphertext_length = 0
   uint32_t data_index = 0;
   uint32_t page_addr = FW_BASE;
   uint32_t version = 0;
@@ -180,35 +182,45 @@ void load_firmware(void)
   uint32_t metadata = ((size & 0xFFFF) << 16) | (version & 0xFFFF);
   program_flash(METADATA_BASE, (uint8_t*)(&metadata), 4);
   fw_release_message_address = (uint8_t *) (FW_BASE + size);
-
+  
   uart_write(UART1, OK); // Acknowledge the metadata.
   /* Loop here until you can get all your characters and stuff */
   while (1) {
     // Read the nonce.
     for(i = 0; i < 16; i++){
+      uart_write_str(UART2, " we good ");
       iv[i] = uart_read(UART1, BLOCKING, &read);
     }
 
     // Get two bytes for the length.
     rcv = uart_read(UART1, BLOCKING, &read);
-    frame_length = (int)rcv << 8;
+    uart_write_str(UART2, " we good ");
+    ciphertext_length = (int)rcv << 8;
     rcv = uart_read(UART1, BLOCKING, &read);
-    frame_length += (int)rcv;
+    ciphertext_length += (int)rcv;
 
     // Write length debug message
     uart_write_hex(UART2,(unsigned char)rcv);
     nl(UART2);
     uart_write_str(UART2, " we good ");
+
     // Read the frame number
-    uart_write_str(UART2, " we good ");
     rcv = uart_read(UART1, BLOCKING, &read);
-    uart_write_str(UART2, " we good ");
+    uart_write_str(UART2, " we good 2");
     *frame_number = (int)rcv << 8;
-    uart_write_str(UART2, " we good ");
+    uart_write_str(UART2, " we good 3");
     rcv = uart_read(UART1, BLOCKING, &read);
     *frame_number += (int)rcv;
      uart_write_hex(UART2,(unsigned char)rcv);
-     uart_write_str(UART2, " we good ");
+     uart_write_str(UART2, " we good 4");
+    
+      // Get two bytes for the length.
+    rcv = uart_read(UART1, BLOCKING, &read);
+    uart_write_str(UART2, " we good ");
+    frame_length = (int)rcv << 8;
+    rcv = uart_read(UART1, BLOCKING, &read);
+    frame_length += (int)rcv;
+      
     // Get the number of bytes specified
     for (i = 0; i < frame_length; ++i){
         data[data_index] = uart_read(UART1, BLOCKING, &read);
@@ -225,6 +237,7 @@ void load_firmware(void)
       // Reset the GCM context
       br_gcm_reset(&gcmc, iv, iv_length);
       // Decrypt Data
+      br_gcm_aad_inject(&gcmc, &metadata ,aad_length)
       br_gcm_flip(&gcmc);
       data_length = (size_t) data_index;
       br_gcm_run(&gcmc, 0, data, data_length);

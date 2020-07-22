@@ -28,10 +28,11 @@ def protect_firmware(infile, outfile, version, message):
         f.write(metadata)
         
 
-    # split into 128 bytes and encrypting it 
+    # split into 1024 bytes and encrypting it 
     for i in range(0,len(firmware_and_message),1024):
         #double check the <h1024s??
-        frame = struct.pack('<h1024s',framenum,firmware_and_message[i:i+1024])
+        whatwewant = firmware_and_message[i:i+1024]
+        frame = struct.pack('<hh{}s'.format(len(whatwewant)),framenum,len(whatwewant),whatwewant)
         framenum+=1
         frame_encrypt = AES.new("This is a keyhhh".encode(), AES.MODE_GCM)
         frame_encrypt.update(metadata)
