@@ -15,12 +15,13 @@ import string
 
 FILE_DIR = pathlib.Path(__file__).parent.absolute()
 
-fp = open('secret_build_output.txt', "wb") #make secret_build_output.txt file, w means create if doesn't exist already
+fp = open("secret_build_output.txt", "w") #make secret_build_output.txt file, w means create if doesn't exist already
 
-key1 = binascii.b2a_hex(os.urandom(32)) #creates a random key by generating a hex of 32 digits
-fp.write(key1)  #write the key to the file
+key2 = ''.join(random.choices(string.ascii_letters + string.digits, k=16)) #creates a random key of letters and numbers, 16 characters (16 bytes)
+fp.write(key2)  #write the key to the file
 
 fp.close() #close fp (secret_build_output.txt file)
+
 
 
 def copy_initial_firmware(binary_path):
@@ -70,14 +71,6 @@ if __name__ == '__main__':
     copy_initial_firmware(binary_path)
     make_bootloader()
 
-fp = open("secret_build_output.txt", "w") #make secret_build_output.txt file, w means create if doesn't exist already
-
-key2 = ''.join(random.choices(string.ascii_letters + string.digits, k=16)) #creates a random key of letters and numbers, 16 characters (16 bytes)
-
-
-fp.write(key2)  #write the key to the file
-
-fp.close() #close fp (secret_build_output.txt file)
 
 
 
