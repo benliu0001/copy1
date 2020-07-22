@@ -11,7 +11,8 @@
 
 // Application Imports
 #include "uart.h"
-
+#include "bearssl.h"
+#include <stdio.h> 
 
 // Forward Declarations
 void load_initial_firmware(void);
@@ -104,7 +105,7 @@ void load_initial_firmware(void) {
   program_flash(FW_BASE + (i * FLASH_PAGESIZE), ((unsigned char *) data) + (i * FLASH_PAGESIZE), size % FLASH_PAGESIZE);
 }
 
-
+// secret_build_output.txt
 /*
  * Load the firmware into flash.
  */
@@ -125,7 +126,6 @@ void load_firmware(void)
   size_t iv_length, key_length;
   iv_length = 16;
   key_length = 16;
-  uint32_t ciphertext_length = 0
   uint32_t data_index = 0;
   uint32_t page_addr = FW_BASE;
   uint32_t version = 0;
@@ -187,30 +187,29 @@ void load_firmware(void)
   while (1) {
     // Read the nonce.
     for(i = 0; i < 16; i++){
-      uart_write_str(UART2, " we good ");
       iv[i] = uart_read(UART1, BLOCKING, &read);
     }
 
     // Get two bytes for the length.
     rcv = uart_read(UART1, BLOCKING, &read);
     uart_write_str(UART2, " we good ");
-    frame_length = (int)rcv << 8;
+    nl(UART2);
+    frame_length = (int)rcv; 
     rcv = uart_read(UART1, BLOCKING, &read);
-    frame_length += (int)rcv;
+    frame_length += (int)rcv << 8;
 
     // Write length debug message
     uart_write_hex(UART2,(unsigned char)rcv);
     nl(UART2);
     uart_write_str(UART2, " we good ");
-
+    nl(UART2);
     // Read the frame number
     rcv = uart_read(UART1, BLOCKING, &read);
     uart_write_str(UART2, " we good 2");
-    *frame_number = (int)rcv << 8;
+    *frame_number = (int)rcv;
     uart_write_str(UART2, " we good 3");
     rcv = uart_read(UART1, BLOCKING, &read);
-    *frame_number += (int)rcv;
-     uart_write_hex(UART2,(unsigned char)rcv);
+    *frame_number += (int)rcv << 8;
      uart_write_str(UART2, " we good 4");
     
       
@@ -230,7 +229,7 @@ void load_firmware(void)
       // Reset the GCM context
       br_gcm_reset(&gcmc, iv, iv_length);
       // Decrypt Data
-      br_gcm_aad_inject(&gcmc, &metadata ,aad_length)
+      br_gcm_aad_inject(&gcmc, &metadata ,aad_length);
       br_gcm_flip(&gcmc);
       data_length = (size_t) data_index;
       br_gcm_run(&gcmc, 0, data, data_length);
