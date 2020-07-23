@@ -97,7 +97,7 @@ void load_initial_firmware(void) {
   uint32_t metadata = (((uint16_t) size & 0xFFFF) << 16) | (version & 0xFFFF);
   program_flash(METADATA_BASE, (uint8_t*)(&metadata), 4);
   fw_release_message_address = (uint8_t *) "This is the initial release message.";
-    
+  
   int i = 0;
   for (; i < size / FLASH_PAGESIZE; i++){
        program_flash(FW_BASE + (i * FLASH_PAGESIZE), ((unsigned char *) data) + (i * FLASH_PAGESIZE), FLASH_PAGESIZE);
@@ -184,23 +184,17 @@ void load_firmware(void)
     // Read the nonce.
     for(i = 0; i < 16; i++){
       iv[i] = uart_read(UART1, BLOCKING, &read);
-      uart_write_hex(UART2,(unsigned char)iv[i]);
-      nl(UART2);
     }
 
     // Get two bytes for the length.
     rcv = uart_read(UART1, BLOCKING, &read);
     frame_length = (int)rcv; 
-    uart_write_hex(UART2,(unsigned char)rcv);
-    nl(UART2);
     rcv = uart_read(UART1, BLOCKING, &read);
     frame_length += (int)rcv << 8;
       
-    uart_write_str(UART2,"hello");
     // Write length debug message
     uart_write_hex(UART2, rcv);
     nl(UART2);
-    uart_write_hex(UART2, frame_length);
   
       
     // Get the number of bytes specified
@@ -208,13 +202,15 @@ void load_firmware(void)
         data[data_index] = uart_read(UART1, BLOCKING, &read);
         data_index += 1;
     } //for
-    uart_write_str(UART2,"hello2");
     //Read the Auth Tag
     for (i = 0; i < 16; i++){
         tag[i] = uart_read(UART1, BLOCKING, &read);
     }
+      uart_write_hex(UART2, frame_length);
+      uart_write_hex(UART2, data_index);
+      
     // If we filed our page buffer, program it
-    if (data_index == FLASH_PAGESIZE || frame_length == 0) {
+    // if (data_index == FLASH_PAGESIZE || frame_length == 0) {
       // Reset the GCM context
       br_gcm_reset(&gcmc, iv, iv_length);
       // Decrypt Data
@@ -225,7 +221,7 @@ void load_firmware(void)
       // Checks for authentication from the tag
       if(!br_gcm_check_tag(&gcmc, tag)) {
       return; 
-      } // if
+      } 
       // Try to write flash and check for error
       if (program_flash(page_addr, data, data_index)){
         uart_write(UART1, ERROR); // Reject the firmware
@@ -244,14 +240,19 @@ void load_firmware(void)
       // Update to next page
       page_addr += FLASH_PAGESIZE;
       data_index = 0;
-
+      
+      // Clears the array
+      for(i = 0; i < 1024; i++){
+          data[i] = 0;
+      }
+        
       // If at end of firmware, go to main
-      if (frame_length == 0) {
+      if (frame_length < 1024) {
         uart_write(UART1, OK);
         break;
       }
-    } // if
-
+      uart_write_str(UART2, "This should only show up twice");
+    //} // if
     uart_write(UART1, OK); // Acknowledge the frame.
   } // while(1)
 }

@@ -87,8 +87,6 @@ def main(ser, infile, debug):
 
         # Construct frame.
    #     frame = struct.pack(frame_fmt, length, data)
-        print (data)
-        print(len(data))
         if debug:
             print("Writing frame {} ({} bytes)...".format(idx, len(data)))
             

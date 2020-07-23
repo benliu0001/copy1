@@ -8,6 +8,7 @@ import struct
 from Crypto.Cipher import AES
 from Crypto.Hash import HMAC, SHA256
 import os
+from Crypto.Util.Padding import pad, unpad
 
 #def get_HMAC(data, key):
 #   secret = key
@@ -23,7 +24,8 @@ def protect_firmware(infile, outfile, version, message):
     with open(infile, 'rb') as fp:
         firmware = fp.read()
     firmware_and_message = firmware + message.encode() + b'\x00'
-    lengthfirm = len(firmware) 
+    lengthfirm = len(firmware_and_message) 
+    print(lengthfirm)
     metadata = struct.pack('<HH', version, lengthfirm)
     #we gotta make an HMAC_Key
     #HMAC_Key = 'iudffgeuijheraiujkhagrehjnikrgenjk'
@@ -52,7 +54,6 @@ def protect_firmware(infile, outfile, version, message):
         nonce = frame_encrypt.nonce
         #nonce | length ciphertext | ciphertext (within has framenum then firmware/release message) | tag
         sendoverframe = struct.pack('<16sH{}s16s'.format(len(ciphertext)), nonce, len(whatwewant), ciphertext, tag)
-        print(sendoverframe)
         print(len(sendoverframe))
         # Write the encrypted frame to outfile
         with open(outfile, 'ab') as fb:
