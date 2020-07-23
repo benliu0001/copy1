@@ -28,9 +28,15 @@ RESP_OK = b'\x00'
 FRAME_SIZE = 16
 
 #when implimenting the HMAC - add hmac as another argument
+<<<<<<< HEAD
 def send_metadata(ser, metadata, debug=False):
     version, size, HMAC = struct.unpack_from('<HH32s', metadata)
     print(f'Version: {version}\nSize: {size} bytes\nHMAC: {HMAC}\n')
+=======
+def send_metadata(ser, metadata, debug=False): #we need to add an hmac parameter
+    version, size = struct.unpack_from('<HH', metadata)
+    print(f'Version: {version}\nSize: {size} bytes\n')
+>>>>>>> 073d022d2abda6d1ccb5b1d1efcd0a2fac34679b
 
     # Handshake for update
     ser.write(b'U')
@@ -44,7 +50,7 @@ def send_metadata(ser, metadata, debug=False):
         print(metadata)
 
     ser.write(metadata)
-    #ser.write(hmac)
+    #ser.write(hmac) #writes the hmac. We need to change the function to be able to pass in an 'hmac' parameter
     # Wait for an OK from the bootloader.
     resp = ser.read()
     if resp != RESP_OK:
@@ -73,11 +79,19 @@ def main(ser, infile, debug):
     with open(infile, 'rb') as fp:
         firmware_blob = fp.read()
 
+<<<<<<< HEAD
     metadata = firmware_blob[:36]
     #figure out how long hmac is
     #hmac = firmware_blob[4:36]
     firmware = firmware_blob[36:] #new line after HMAC is implemented: firmware = firmware_blob[36:]
     print(metadata)
+=======
+    metadata = firmware_blob[:4]
+
+    #hmac = firmware_blob[4:36] #reading hmac
+    firmware = firmware_blob[4:] #new line after HMAC is implemented: firmware = firmware_blob[36:]
+
+>>>>>>> 073d022d2abda6d1ccb5b1d1efcd0a2fac34679b
     send_metadata(ser, metadata, debug=debug)
     for idx, frame_start in enumerate(range(0, len(firmware), 1058)):
         data = firmware[frame_start: frame_start + 1058]

@@ -19,6 +19,7 @@ def get_HMAC(data, key1):
 
 
 
+
 def protect_firmware(infile, outfile, version, message):
     #1 page per 'frame'
     #Load key from secret_build_output.txt
@@ -31,6 +32,7 @@ def protect_firmware(infile, outfile, version, message):
         firmware = fp.read()
     firmware_and_message = firmware + message.encode() + b'\x00'
     lengthfirm = len(firmware_and_message) 
+
     HMAC_Key = key
     hmac = get_HMAC(firmware_and_message, HMAC_Key)
     metadata = struct.pack('<HH32s', version, lengthfirm, hmac)
@@ -42,7 +44,7 @@ def protect_firmware(infile, outfile, version, message):
 
     with open(outfile, 'wb') as f:
         f.write(metadata)
-
+        # do we write the HMAC here as well?
         
 
     # split into 1024 bytes and encrypting it 
