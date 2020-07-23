@@ -77,9 +77,8 @@ def main(ser, infile, debug):
     firmware = firmware_blob[4:]
 
     send_metadata(ser, metadata, debug=debug)
-    print(len(firmware))
-    for idx, frame_start in enumerate(range(0, len(firmware), 1060)):
-        data = firmware[frame_start: frame_start + 1060]
+    for idx, frame_start in enumerate(range(0, len(firmware), 1058)):
+        data = firmware[frame_start: frame_start + 1058]
         # Get length of data.
      #   length = len(data)
       #  frame_fmt = '>H{}s'.format(length)
@@ -89,8 +88,6 @@ def main(ser, infile, debug):
 
         if debug:
             print("Writing frame {} ({} bytes)...".format(idx, len(data)))
-
-        send_frame(ser, data, debug=debug)
 
     print("Done writing firmware.")
 

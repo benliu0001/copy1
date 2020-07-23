@@ -113,14 +113,11 @@ void load_firmware(void)
 {
   int frame_length = 0;
   int read = 0;
-  int* frame_number_compare = 0;
-  int* frame_number = 0;
   int i;
   uint32_t rcv = 0;
   char tag[16];
-  size_t frame_number_length, data_length, aad_length;
+  size_t data_length, aad_length;
   aad_length = 4;
-  frame_number_length = 2;
   char iv[16];
   char key[16] = "This is a keyhhh";
   size_t iv_length, key_length;
@@ -204,12 +201,6 @@ void load_firmware(void)
     nl(UART2);
     uart_write_hex(UART2, frame_length);
   
-    // Read the frame number
-    rcv = uart_read(UART1, BLOCKING, &read);
-    *frame_number = (int)rcv;
-    rcv = uart_read(UART1, BLOCKING, &read);
-    *frame_number += (int)rcv << 8;
-    uart_write_str(UART2,"hello1");
       
     // Get the number of bytes specified
     for (i = 0; i < frame_length; ++i){
@@ -234,16 +225,6 @@ void load_firmware(void)
       if(!br_gcm_check_tag(&gcmc, tag)) {
       return; 
       } // if
-      // Decrypt the frame number
-      br_gcm_flip(&gcmc);
-      br_gcm_run(&gcmc, 0, frame_number, frame_number_length);
-      // Check if the frame is in order
-      if(*frame_number == *frame_number_compare + 1){
-        *frame_number_compare = *frame_number;
-      }
-      else{
-        return;
-      } 
       // Try to write flash and check for error
       if (program_flash(page_addr, data, data_index)){
         uart_write(UART1, ERROR); // Reject the firmware

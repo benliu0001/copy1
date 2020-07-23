@@ -13,10 +13,9 @@ def protect_firmware(infile, outfile, version, message):
     # Load firmware binary from infile
     with open(infile, 'rb') as fp:
         firmware = fp.read()
-    firmware_and_message = firmware + message.encode() + b'\00'
+    firmware_and_message = firmware + message.encode() + b'\x00'
     lengthfirm = len(firmware) 
     metadata = struct.pack('<HH', version, lengthfirm)
-    framenum = 1
     #Load key from secret_build_output.txt
    # with open('secret_build_output.txt', 'rb') as sbo:
         #key = sbo.read()
@@ -32,8 +31,7 @@ def protect_firmware(infile, outfile, version, message):
     for i in range(0,len(firmware_and_message),1024):
         #double check the <h1024s??
         whatwewant = firmware_and_message[i:i+1024]
-        frame = struct.pack('<H{}s'.format(len(whatwewant)),framenum,whatwewant)
-        framenum+=1
+        frame = struct.pack('{}s'.format(len(whatwewant)), whatwewant)
         frame_encrypt = AES.new("This is a keyhhh".encode(), AES.MODE_GCM)
         frame_encrypt.update(metadata)
         ciphertext, tag = frame_encrypt.encrypt_and_digest(frame)
