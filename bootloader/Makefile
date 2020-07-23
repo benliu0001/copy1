@@ -63,7 +63,8 @@ BEARSSL=${LIB}/BearSSL
 include ./makedefs
 
 CFLAGS+=-g
-
+#this is passing the keys through the make file??
+CFLAGS+=-D GEN_KEY=${KEY}
 #
 # Where to find header files that do not live in this directory.
 #

@@ -28,7 +28,7 @@ RESP_OK = b'\x00'
 FRAME_SIZE = 16
 
 #when implimenting the HMAC - add hmac as another argument
-def send_metadata(ser, metadata, debug=False):
+def send_metadata(ser, metadata, debug=False): #we need to add an hmac parameter
     version, size = struct.unpack_from('<HH', metadata)
     print(f'Version: {version}\nSize: {size} bytes\n')
 
@@ -44,7 +44,7 @@ def send_metadata(ser, metadata, debug=False):
         print(metadata)
 
     ser.write(metadata)
-    #ser.write(hmac)
+    #ser.write(hmac) #writes the hmac. We need to change the function to be able to pass in an 'hmac' parameter
     # Wait for an OK from the bootloader.
     resp = ser.read()
     if resp != RESP_OK:
@@ -74,8 +74,8 @@ def main(ser, infile, debug):
         firmware_blob = fp.read()
 
     metadata = firmware_blob[:4]
-    #figure out how long hmac is
-    #hmac = firmware_blob[4:36]
+
+    #hmac = firmware_blob[4:36] #reading hmac
     firmware = firmware_blob[4:] #new line after HMAC is implemented: firmware = firmware_blob[36:]
 
     send_metadata(ser, metadata, debug=debug)
@@ -87,8 +87,6 @@ def main(ser, infile, debug):
 
         # Construct frame.
    #     frame = struct.pack(frame_fmt, length, data)
-        print (data)
-        print(len(data))
         if debug:
             print("Writing frame {} ({} bytes)...".format(idx, len(data)))
             

@@ -12,17 +12,19 @@ import shutil
 import subprocess
 import random
 import string
+import Crypto.Random
 
 FILE_DIR = pathlib.Path(__file__).parent.absolute()
 
-fp = open("secret_build_output.txt", "w") #make secret_build_output.txt file, w means create if doesn't exist already
+fp = open("secret_build_output.txt", "wb") #make secret_build_output.txt file, w means create if doesn't exist already
 
-key2 = ''.join(random.choices(string.ascii_letters + string.digits, k=16)) #creates a random key of letters and numbers, 16 characters (16 bytes)
-fp.write(key2)  #write the key to the file
+key = Crypto.Random.get_random_bytes(16) #creates a random key of letters and numbers, 16 characters (16 bytes)
+fp.write(key)  #write the key to the file
 
 fp.close() #close fp (secret_build_output.txt file)
 
-
+def to_c_array(binary_string):
+    return "{" + ",".join([hex(c) for c in binary_string]) + "}" #this functions returns the parameter except in a way that the makefile can read it
 
 def copy_initial_firmware(binary_path):
     """
@@ -48,7 +50,7 @@ def make_bootloader():
     os.chdir(bootloader)
 
     subprocess.call('make clean', shell=True)
-    status = subprocess.call('make')
+    status = subprocess.call(f'make KEY={to_c_array(key)}', shell=True) #sending key 
 
     # Return True if make returned 0, otherwise return False.
     return (status == 0)

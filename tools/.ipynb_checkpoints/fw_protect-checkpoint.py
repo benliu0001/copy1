@@ -8,8 +8,9 @@ import struct
 from Crypto.Cipher import AES
 from Crypto.Hash import HMAC, SHA256
 import os
+from Crypto.Util.Padding import pad, unpad
 
-#def get_HMAC(data, key):
+#def get_HMAC(data, key): #returns an hmac in the bytearray format based on the data you want to hash. (data) parameter represents the data to be hashed, (key) represents the key to do the HMAC off of
 #   secret = key
 #   h = HMAC.new(secret, digestmod=SHA256)
 #   h.update(data)
@@ -23,10 +24,10 @@ def protect_firmware(infile, outfile, version, message):
     with open(infile, 'rb') as fp:
         firmware = fp.read()
     firmware_and_message = firmware + message.encode() + b'\x00'
-    lengthfirm = len(firmware) 
+    lengthfirm = len(firmware_and_message) 
     metadata = struct.pack('<HH', version, lengthfirm)
     #we gotta make an HMAC_Key
-    #HMAC_Key = 'iudffgeuijheraiujkhagrehjnikrgenjk'
+    #HMAC_Key = 'iudffgeuijheraiujkhagrehjnikrgenjk' # (needs to be a byearray, and we need to make a separate HMAC key)!!!!! 
     #hmac = get_HMAC(metadata, HMAC_key)
     
     #Load key from secret_build_output.txt
@@ -38,7 +39,7 @@ def protect_firmware(infile, outfile, version, message):
 
     with open(outfile, 'wb') as f:
         f.write(metadata)
-
+        # do we write the HMAC here as well?
         
 
     # split into 1024 bytes and encrypting it 
@@ -52,8 +53,7 @@ def protect_firmware(infile, outfile, version, message):
         nonce = frame_encrypt.nonce
         #nonce | length ciphertext | ciphertext (within has framenum then firmware/release message) | tag
         sendoverframe = struct.pack('<16sH{}s16s'.format(len(ciphertext)), nonce, len(whatwewant), ciphertext, tag)
-        print(sendoverframe)
-        print(len(sendoverframe))
+
         # Write the encrypted frame to outfile
         with open(outfile, 'ab') as fb:
             fb.write(sendoverframe)
