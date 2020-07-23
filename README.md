@@ -14,6 +14,7 @@ bl_build:
   - The bootloader generates a main.bin file which has contents of flash memory
 fw_protect:
   - Use GCM to encrypt and add a data signature to the Firmware and packages the metadata. 
+    - an HMAC of the metadata will be packaged with the metadata
   - It will use a key generated from the seed stored in the secret_build_output.txt file and a key number to determine which part of the stream cipher to use. 
   - The metadata will include the key number that will eventually specify to the bootloader which evolution of the stream cipher to use as a key. 
   - The metadata will also include the IV that is used to start encrypting the data (random IV).
