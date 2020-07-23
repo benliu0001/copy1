@@ -111,123 +111,142 @@ void load_initial_firmware(void) {
  */
 void load_firmware(void)
 {
-  int frame_length = 0;
-  int read = 0;
-  int i;
-  uint32_t rcv = 0;
-  char tag[16];
-  size_t data_length, aad_length;
-  aad_length = 4;
-  char iv[16];
-  char key[16] = "This is a keyhhh";
-  size_t iv_length, key_length;
-  iv_length = 16;
-  key_length = 16;
-  uint32_t data_index = 0;
-  uint32_t page_addr = FW_BASE;
-  uint32_t version = 0;
-  uint32_t size = 0;
-  //V 0.7/
-  //V 0.8(Deleted frame_number)
-    
-  // Initiate context structs for GCM
-  br_aes_ct_ctr_keys ctrc;
-  br_gcm_context gcmc;
-    
-  // Create contexts for cipher
-  br_aes_ct_ctr_init(&ctrc,key,key_length);
-  br_gcm_init(&gcmc, &ctrc.vtable, br_ghash_ctmul32);
-    
-  // Get version.
-  rcv = uart_read(UART1, BLOCKING, &read);
-  version = (uint32_t)rcv;
-  rcv = uart_read(UART1, BLOCKING, &read);
-  version |= (uint32_t)rcv << 8;
-
-  uart_write_str(UART2, "Received Firmware Version: ");
-  uart_write_hex(UART2, version);
-  nl(UART2);
-  
-  // Get size.
-  rcv = uart_read(UART1, BLOCKING, &read);
-  size = (uint32_t)rcv;
-  rcv = uart_read(UART1, BLOCKING, &read);
-  size |= (uint32_t)rcv << 8;
-  
-
-  uart_write_str(UART2, "Received Firmware Size: ");
-  uart_write_hex(UART2, size);
-  nl(UART2);
+      int frame_length = 0;
+      int read = 0;
+      int i;
+      uint32_t rcv = 0;
+      char tag[16];
+      size_t data_length, aad_length;
+      aad_length = 4;
+      char hmac[32];
+      char compare[32];
+      char iv[16];
+      char key[16] = GEN_KEY;
+      size_t iv_length, key_length;
+      size_t firmware_length;
+      iv_length = 16;
+      key_length = 16;
+      uint32_t data_index = 0;
+      uint32_t page_addr = FW_BASE;
+      uint32_t version = 0;
+      uint32_t size = 0;
+      //V 0.7/
+      //V 0.8(Deleted frame_number)
+      //V 1.1 Removed strings, decryption works, adding hmac for first time
 
 
-  // Compare to old version and abort if older (note special case for version 0).
-  uint16_t old_version = *fw_version_address;
+      // Initiate context structs for GCM
+      br_aes_ct_ctr_keys ctrc;
+      br_gcm_context gcmc;
 
-  if (version != 0 && version < old_version) {
-    uart_write(UART1, ERROR); // Reject the metadata.
-    SysCtlReset(); // Reset device
-    return;
-  } else if (version == 0) {
-    // If debug firmware, don't change version
-    version = old_version;
-  }
+      // Initiate context structs for HMAC
+      br_hmac_key_context kc;
+      br_hmac_context hmc;
 
-  // Write new firmware size and version to Flash
-  // Create 32 bit word for flash programming, version is at lower address, size is at higher address
-  uint32_t metadata = ((size & 0xFFFF) << 16) | (version & 0xFFFF);
-  program_flash(METADATA_BASE, (uint8_t*)(&metadata), 4);
-  fw_release_message_address = (uint8_t *) (FW_BASE + size);
-  
-  uart_write(UART1, OK); // Acknowledge the metadata.
-  /* Loop here until you can get all your characters and stuff */
-  while (1) {
-    // Read the nonce.
-    for(i = 0; i < 16; i++){
-      iv[i] = uart_read(UART1, BLOCKING, &read);
-    }
+      // Create contexts for cipher
+      br_aes_ct_ctr_init(&ctrc,key,key_length);
+      br_gcm_init(&gcmc, &ctrc.vtable, br_ghash_ctmul32);
 
-    // Get two bytes for the length.
-    rcv = uart_read(UART1, BLOCKING, &read);
-    frame_length = (int)rcv; 
-    rcv = uart_read(UART1, BLOCKING, &read);
-    frame_length += (int)rcv << 8;
-      
-    // Write length debug message
-    uart_write_hex(UART2, rcv);
-    nl(UART2);
-  
-      
-    // Get the number of bytes specified
-    for (i = 0; i < frame_length; ++i){
-        data[data_index] = uart_read(UART1, BLOCKING, &read);
-        data_index += 1;
-    } //for
-    //Read the Auth Tag
-    for (i = 0; i < 16; i++){
-        tag[i] = uart_read(UART1, BLOCKING, &read);
-    }
-      uart_write_hex(UART2, frame_length);
-      uart_write_hex(UART2, data_index);
-      
-    // If we filed our page buffer, program it
-    // if (data_index == FLASH_PAGESIZE || frame_length == 0) {
-      // Reset the GCM context
+      // Get version.
+      rcv = uart_read(UART1, BLOCKING, &read);
+      version = (uint32_t)rcv;
+      rcv = uart_read(UART1, BLOCKING, &read);
+      version |= (uint32_t)rcv << 8;
+
+      uart_write_str(UART2, "Received Firmware Version: ");
+      uart_write_hex(UART2, version);
+      nl(UART2);
+
+      // Get size.
+      rcv = uart_read(UART1, BLOCKING, &read);
+      size = (uint32_t)rcv;
+      rcv = uart_read(UART1, BLOCKING, &read);
+      size |= (uint32_t)rcv << 8;
+
+      firmware_length = (size_t) size;
+
+      uart_write_str(UART2, "Received Firmware Size: ");
+      uart_write_hex(UART2, size);
+      nl(UART2);
+
+      //Get HMAC
+        for(i = 0; i < 32; i++){
+            hmac[i] = uart_read(UART1, BLOCKING, &read);
+        }
+
+      uart_write_str(UART2, "Received Firmware HMAC: ");
+      uart_write_str(UART2, hmac);
+      nl(UART2);
+
+      // Compare to old version and abort if older (note special case for version 0).
+      uint16_t old_version = *fw_version_address;
+
+      if (version != 0 && version < old_version) {
+        uart_write(UART1, ERROR); // Reject the metadata.
+        SysCtlReset(); // Reset device
+        return;
+      } else if (version == 0) {
+        // If debug firmware, don't change version
+        version = old_version;
+      }
+
+      // Write new firmware size and version to Flash
+      // Create 32 bit word for flash programming, version is at lower address, size is at higher address
+      uint32_t metadata = ((size & 0xFFFF) << 16) | (version & 0xFFFF);
+      program_flash(METADATA_BASE, (uint8_t*)(&metadata), 4);
+      fw_release_message_address = (uint8_t *) (FW_BASE + size);
+      uart_write(UART1, OK); // Acknowledge the metadata.
+      /* Loop here until you can get all your characters and stuff */
+      while (1) {
+
+        // Read the nonce.
+        for(i = 0; i < 16; i++){
+          iv[i] = uart_read(UART1, BLOCKING, &read);
+        }
+
+        // Get two bytes for the length.
+        rcv = uart_read(UART1, BLOCKING, &read);
+        frame_length = (int)rcv; 
+        rcv = uart_read(UART1, BLOCKING, &read);
+        frame_length += (int)rcv << 8;
+
+        // Write length debug message
+        uart_write_hex(UART2, frame_length);
+        nl(UART2);
+
+
+        // Get the number of bytes specified
+        for (i = 0; i < frame_length; ++i){
+            data[data_index] = uart_read(UART1, BLOCKING, &read);
+            data_index += 1;
+        } //for
+          
+          
+        //Read the Auth Tag
+        for (i = 0; i < 16; i++){
+            tag[i] = uart_read(UART1, BLOCKING, &read);
+        }
+          
+          
+      // Reset the GCM context 
       br_gcm_reset(&gcmc, iv, iv_length);
       // Decrypt Data
       br_gcm_aad_inject(&gcmc, &metadata ,aad_length);
       br_gcm_flip(&gcmc);
       data_length = (size_t) data_index;
       br_gcm_run(&gcmc, 0, data, data_length);
+          
       // Checks for authentication from the tag
       if(!br_gcm_check_tag(&gcmc, tag)) {
       return; 
-      } 
+      }   
       // Try to write flash and check for error
       if (program_flash(page_addr, data, data_index)){
         uart_write(UART1, ERROR); // Reject the firmware
         SysCtlReset(); // Reset device
         return;
       }
+      
 #if 1
       // Write debugging messages to UART2.
       uart_write_str(UART2, "Page successfully programmed\nAddress: ");
@@ -251,10 +270,25 @@ void load_firmware(void)
         uart_write(UART1, OK);
         break;
       }
-      uart_write_str(UART2, "This should only show up twice");
-    //} // if
+      
     uart_write(UART1, OK); // Acknowledge the frame.
   } // while(1)
+  br_hmac_key_init(&kc, &br_sha256_vtable, key, key_length);
+  br_hmac_init(&hmc, &kc, 0);
+  br_hmac_update(&hmc, (char *)FW_BASE, firmware_length);
+  br_hmac_out(&hmc, compare);
+  uart_write_hex(UART2, compare);
+  nl(UART2);
+  uart_write_hex(UART2, hmac);
+  if(compare != hmac){
+      program_flash(FW_BASE, 0, size);
+      uart_write_str(UART2, "\nHMAC failed");
+  }
+  else{
+      uart_write_str(UART2, "\nHMAC passed");
+  }
+  
+  
 }
 
 

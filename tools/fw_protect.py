@@ -10,30 +10,33 @@ from Crypto.Hash import HMAC, SHA256
 import os
 from Crypto.Util.Padding import pad, unpad
 
-#def get_HMAC(data, key):
-#   secret = key
-#   h = HMAC.new(secret, digestmod=SHA256)
-#   h.update(data)
-#   return h.digest()
-#   #make sure it works on the bootloader side
+def get_HMAC(data, key1):
+    secret = key1
+    h = HMAC.new(secret, digestmod=SHA256)
+    h.update(data)
+    return h.digest()
+    #make sure it works on the bootloader side
+
+
 
 def protect_firmware(infile, outfile, version, message):
     #1 page per 'frame'
+    #Load key from secret_build_output.txt
+    with open('secret_build_output.txt', 'rb') as sbo:
+        key = sbo.read()
+        #if we were to have a seed, would happen here??
     
     # Load firmware binary from infile
     with open(infile, 'rb') as fp:
         firmware = fp.read()
     firmware_and_message = firmware + message.encode() + b'\x00'
     lengthfirm = len(firmware_and_message) 
-    metadata = struct.pack('<HH', version, lengthfirm)
-    #we gotta make an HMAC_Key
-    #HMAC_Key = 'iudffgeuijheraiujkhagrehjnikrgenjk'
-    #hmac = get_HMAC(metadata, HMAC_key)
+    HMAC_Key = key
+    hmac = get_HMAC(firmware_and_message, HMAC_Key)
+    metadata = struct.pack('<HH32s', version, lengthfirm, hmac)
+
     
-    #Load key from secret_build_output.txt
-   # with open('secret_build_output.txt', 'rb') as sbo:
-        #key = sbo.read()
-        #if we were to have a seed, would happen here??
+
 
     #write metadata to outfile
 
@@ -43,12 +46,14 @@ def protect_firmware(infile, outfile, version, message):
         
 
     # split into 1024 bytes and encrypting it 
+    print(metadata[0:4])
+    print(metadata[4:36])
     for i in range(0,len(firmware_and_message),1024):
         #double check the <h1024s??
         whatwewant = firmware_and_message[i:i+1024]
         frame = struct.pack('{}s'.format(len(whatwewant)), whatwewant)
-        frame_encrypt = AES.new("This is a keyhhh".encode(), AES.MODE_GCM)
-        frame_encrypt.update(metadata)
+        frame_encrypt = AES.new(key, AES.MODE_GCM)
+        frame_encrypt.update(metadata[0:4])
         ciphertext, tag = frame_encrypt.encrypt_and_digest(frame)
         nonce = frame_encrypt.nonce
         #nonce | length ciphertext | ciphertext (within has framenum then firmware/release message) | tag
