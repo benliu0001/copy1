@@ -24,11 +24,7 @@ fp.write(key)  #write the key to the file
 fp.close() #close fp (secret_build_output.txt file)
 
 def to_c_array(binary_string):
-<<<<<<< HEAD
     return "{" + ",".join([hex(c) for c in binary_string]) + "}"
-=======
-    return "{" + ",".join([hex(c) for c in binary_string]) + "}" #this functions returns the parameter except in a way that the makefile can read it
->>>>>>> 073d022d2abda6d1ccb5b1d1efcd0a2fac34679b
 
 def copy_initial_firmware(binary_path):
     """

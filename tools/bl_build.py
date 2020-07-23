@@ -24,7 +24,7 @@ fp.write(key)  #write the key to the file
 fp.close() #close fp (secret_build_output.txt file)
 
 def to_c_array(binary_string):
-    return "{" + ",".join([hex(c) for c in binary_string]) + "}" #this functions returns the parameter except in a way that the makefile can read it
+    return "{" + ",".join([hex(c) for c in binary_string]) + "}"
 
 def copy_initial_firmware(binary_path):
     """
@@ -50,7 +50,7 @@ def make_bootloader():
     os.chdir(bootloader)
 
     subprocess.call('make clean', shell=True)
-    status = subprocess.call(f'make KEY={to_c_array(key)}', shell=True) #sending key 
+    status = subprocess.call(f'make KEY={to_c_array(key)}', shell=True)
 
     # Return True if make returned 0, otherwise return False.
     return (status == 0)

@@ -31,10 +31,10 @@ def protect_firmware(infile, outfile, version, message):
     with open(infile, 'rb') as fp:
         firmware = fp.read()
     firmware_and_message = firmware + message.encode() + b'\x00'
-    lengthfirm = len(firmware_and_message) 
-
+    lengthfirm = len(firmware) 
     HMAC_Key = key
-    hmac = get_HMAC(firmware_and_message, HMAC_Key)
+    hmac = get_HMAC(firmware, HMAC_Key)
+
     metadata = struct.pack('<HH32s', version, lengthfirm, hmac)
 
     
@@ -48,8 +48,6 @@ def protect_firmware(infile, outfile, version, message):
         
 
     # split into 1024 bytes and encrypting it 
-    print(metadata[0:4])
-    print(metadata[4:36])
     for i in range(0,len(firmware_and_message),1024):
         #double check the <h1024s??
         whatwewant = firmware_and_message[i:i+1024]

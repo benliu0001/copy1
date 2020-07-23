@@ -119,6 +119,8 @@ void load_firmware(void)
       size_t data_length, aad_length;
       aad_length = 4;
       char hmac[32];
+      int randomcounter = 0;
+      int erasingadd = 0;
       char compare[32];
       char iv[16];
       char key[16] = GEN_KEY;
@@ -133,7 +135,7 @@ void load_firmware(void)
       //V 0.7/
       //V 0.8(Deleted frame_number)
       //V 1.1 Removed strings, decryption works, adding hmac for first time
-
+      //V 1.2 added more strings, fixing hmac, hoopefully i cleared the strings
 
       // Initiate context structs for GCM
       br_aes_ct_ctr_keys ctrc;
@@ -162,7 +164,7 @@ void load_firmware(void)
       size = (uint32_t)rcv;
       rcv = uart_read(UART1, BLOCKING, &read);
       size |= (uint32_t)rcv << 8;
-
+    
       firmware_length = (size_t) size;
 
       uart_write_str(UART2, "Received Firmware Size: ");
@@ -230,6 +232,7 @@ void load_firmware(void)
           
       // Reset the GCM context 
       br_gcm_reset(&gcmc, iv, iv_length);
+          
       // Decrypt Data
       br_gcm_aad_inject(&gcmc, &metadata ,aad_length);
       br_gcm_flip(&gcmc);
@@ -264,33 +267,37 @@ void load_firmware(void)
       for(i = 0; i < 1024; i++){
           data[i] = 0;
       }
-        
+         
       // If at end of firmware, go to main
       if (frame_length < 1024) {
         uart_write(UART1, OK);
         break;
       }
-      
+    randomcounter++;
+          
     uart_write(UART1, OK); // Acknowledge the frame.
   } // while(1)
+    
   br_hmac_key_init(&kc, &br_sha256_vtable, key, key_length);
   br_hmac_init(&hmc, &kc, 0);
   br_hmac_update(&hmc, (char *)FW_BASE, firmware_length);
   br_hmac_out(&hmc, compare);
-  uart_write_hex(UART2, compare);
-  nl(UART2);
-  uart_write_hex(UART2, hmac);
-  if(compare != hmac){
-      program_flash(FW_BASE, 0, size);
-      uart_write_str(UART2, "\nHMAC failed");
+  for(i = 0; i < 32; i++){
+      if(compare[i]!=hmac[i]){
+          erasingadd = 0x1000;
+          for(i = 0; i < randomcounter; i++){
+          FlashErase(erasingadd);
+          erasingadd += FLASH_PAGESIZE;
+      }
+          uart_write_str(UART2, "\nHMAC failed");
+          return;
+      }
   }
-  else{
+
+          
       uart_write_str(UART2, "\nHMAC passed");
   }
   
-  
-}
-
 
 /*
  * Program a stream of bytes to the flash.
