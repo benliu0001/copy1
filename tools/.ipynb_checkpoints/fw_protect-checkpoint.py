@@ -25,7 +25,6 @@ def protect_firmware(infile, outfile, version, message):
         firmware = fp.read()
     firmware_and_message = firmware + message.encode() + b'\x00'
     lengthfirm = len(firmware_and_message) 
-    print(lengthfirm)
     metadata = struct.pack('<HH', version, lengthfirm)
     #we gotta make an HMAC_Key
     #HMAC_Key = 'iudffgeuijheraiujkhagrehjnikrgenjk'
@@ -54,7 +53,7 @@ def protect_firmware(infile, outfile, version, message):
         nonce = frame_encrypt.nonce
         #nonce | length ciphertext | ciphertext (within has framenum then firmware/release message) | tag
         sendoverframe = struct.pack('<16sH{}s16s'.format(len(ciphertext)), nonce, len(whatwewant), ciphertext, tag)
-        print(len(sendoverframe))
+
         # Write the encrypted frame to outfile
         with open(outfile, 'ab') as fb:
             fb.write(sendoverframe)
