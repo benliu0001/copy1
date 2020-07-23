@@ -12,6 +12,7 @@ bl_build:
   - Create a seed for the key stream cipher
   - Store this seed with the rest of the code for the bootloader, as well as in the secret_build_output.txt file. 
   - The bootloader generates a main.bin file which has contents of flash memory
+
 fw_protect:
   - Use GCM to encrypt and add a data signature to the Firmware and packages the metadata. 
     - an HMAC of the metadata will be packaged with the metadata
@@ -20,6 +21,7 @@ fw_protect:
   - The metadata will also include the IV that is used to start encrypting the data (random IV).
   - We break the firmware into smaller frames and protect them individually.
     -We are HMAC'ing the entire firmware which will then be verified in the bootloader
+
 fw_update:
   - Using the data package bundled by the protect tool, communicate with the bootloader to upload the firmware package to the bootloader. 
    - Protocol:
@@ -27,6 +29,7 @@ fw_update:
     - Update tool sends over the metadata package (in frames if necessary)
     - Update tool then creates frames (using a piece of the data package and the size of that frame) and sends it to the bootloader sequentially, checking for an ok message each time. 
     - Send a black frame to indicate it is done sending frames
+
 bootloader:
   - we verify and decrypt all our cryptographic primitives in the bootloader
   - Read in the metadata, store it on SRAM 
