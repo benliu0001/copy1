@@ -27,7 +27,7 @@ def protect_firmware(infile, outfile, version, message):
     lengthfirm = len(firmware_and_message) 
     metadata = struct.pack('<HH', version, lengthfirm)
     #we gotta make an HMAC_Key
-    #HMAC_Key = 'iudffgeuijheraiujkhagrehjnikrgenjk'
+    #HMAC_Key = 'iudffgeuijheraiujkhagrehjnikrgenjk' # (needs to be a byearray)!!!!!
     #hmac = get_HMAC(metadata, HMAC_key)
     
     #Load key from secret_build_output.txt
