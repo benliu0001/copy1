@@ -27,7 +27,7 @@ from serial import Serial
 RESP_OK = b'\x00'
 FRAME_SIZE = 16
 
-
+#when implimenting the HMAC - add hmac as another argument
 def send_metadata(ser, metadata, debug=False):
     version, size = struct.unpack_from('<HH', metadata)
     print(f'Version: {version}\nSize: {size} bytes\n')
@@ -44,7 +44,7 @@ def send_metadata(ser, metadata, debug=False):
         print(metadata)
 
     ser.write(metadata)
-
+    #ser.write(hmac)
     # Wait for an OK from the bootloader.
     resp = ser.read()
     if resp != RESP_OK:
@@ -74,10 +74,11 @@ def main(ser, infile, debug):
         firmware_blob = fp.read()
 
     metadata = firmware_blob[:4]
-    firmware = firmware_blob[4:]
+    #figure out how long hmac is
+    #hmac = firmware_blob[4:36]
+    firmware = firmware_blob[4:] #new line after HMAC is implemented: firmware = firmware_blob[36:]
 
     send_metadata(ser, metadata, debug=debug)
-    print(len(firmware))
     for idx, frame_start in enumerate(range(0, len(firmware), 1058)):
         data = firmware[frame_start: frame_start + 1058]
         # Get length of data.
@@ -86,10 +87,13 @@ def main(ser, infile, debug):
 
         # Construct frame.
    #     frame = struct.pack(frame_fmt, length, data)
-
+        print (data)
+        print(len(data))
         if debug:
             print("Writing frame {} ({} bytes)...".format(idx, len(data)))
-
+            
+        send_frame(ser, data, debug=debug)
+        
     print("Done writing firmware.")
 
     # Send a zero length payload to tell the bootlader to finish writing it's page.

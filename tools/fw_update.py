@@ -87,10 +87,13 @@ def main(ser, infile, debug):
 
         # Construct frame.
    #     frame = struct.pack(frame_fmt, length, data)
-
+        print (data)
+        print(len(data))
         if debug:
             print("Writing frame {} ({} bytes)...".format(idx, len(data)))
-
+            
+        send_frame(ser, data, debug=debug)
+        
     print("Done writing firmware.")
 
     # Send a zero length payload to tell the bootlader to finish writing it's page.
