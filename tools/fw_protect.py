@@ -45,8 +45,8 @@ def protect_firmware(infile, outfile, version, message):
     # split into 1024 bytes and encrypting it 
     for i in range(0,len(firmware_and_message),1024):
         #double check the <h1024s??
-        whatwewant = firmware_and_message[i:i+1024]
-        paddedwhatwewant = pad
+        unpadded_whatwewant = firmware_and_message[i:i+1024]
+        whatwewant = pad(unpadded_whatwewant,16)
         frame = struct.pack('{}s'.format(len(whatwewant)), whatwewant)
         frame_encrypt = AES.new("This is a keyhhh".encode(), AES.MODE_GCM)
         frame_encrypt.update(metadata)
