@@ -4,9 +4,6 @@ design-challenge-error-404-brain-not-found created by GitHub Classroom
 This is a readme file. Read me!
 
 
-I would give an overview of the protocol used in your design, and any details you want on the bootloader code, such as when/how data is written to flash, how you do version checking, etc.
-You can put more detail/explanation of how things work in your source code with comments and good variable names. And if there's any diagrams you think don't make sense to put in the readme (or are too large), you can make a separate document for them.
--give the reader a pretty good understanding of your protocol and how data is encrypted,authenticated, and integrity checked
 
 
 bl_build: 
