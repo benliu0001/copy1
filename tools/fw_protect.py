@@ -8,6 +8,7 @@ import struct
 from Crypto.Cipher import AES
 from Crypto.Hash import HMAC, SHA256
 import os
+from Crypto.Util.Padding import pad, unpad
 
 #def get_HMAC(data, key):
 #   secret = key
@@ -45,6 +46,7 @@ def protect_firmware(infile, outfile, version, message):
     for i in range(0,len(firmware_and_message),1024):
         #double check the <h1024s??
         whatwewant = firmware_and_message[i:i+1024]
+        paddedwhatwewant = pad
         frame = struct.pack('{}s'.format(len(whatwewant)), whatwewant)
         frame_encrypt = AES.new("This is a keyhhh".encode(), AES.MODE_GCM)
         frame_encrypt.update(metadata)
