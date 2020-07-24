@@ -17,7 +17,7 @@ xqcL
 # fw_protect:
   - Reads in infile, version nuber, and release message
   
-  ## Protocal
+  ## Protocol
     - Combines release message and firmware while adding a nullbyte as a terminator
     - Generates key from stream cipher
     - Creates METADATA(version, size, and HMACS)
