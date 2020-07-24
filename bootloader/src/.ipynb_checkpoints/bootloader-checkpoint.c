@@ -343,7 +343,7 @@ void load_firmware(void)
   br_hmac_update(&hmc, (char *)FW_BASE, firmware_length);
   br_hmac_out(&hmc, comparehmac);
   for(i = 0; i < 32; i++){
-      if(1){
+      if(comparehmac[i]!=hmac[i]){
           erasingadd = 0x10000;
           for(i = 0; i < randomcounter; i++){
           uart_write_str(UART2, "Deleting page: ");
