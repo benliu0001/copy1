@@ -15,7 +15,7 @@ xqcL
   3. The bootloader generates a main.bin file which has contents of flash memory
 
 ## fw_protect:
-  -Reads in infile, version nuber, and release message
+  - Reads in infile, version nuber, and release message
   
   ### Protocol:
    1. Combines release message and firmware while adding a nullbyte as a terminator
