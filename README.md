@@ -21,14 +21,15 @@ fw_protect:
   - Use GCM to encrypt and add a data signature to the Firmware and packages the metadata. 
   - It will use a key generated from the seed stored in the secret_build_output.txt file and a key number to determine which part of the stream cipher to use. 
 //- The metadata will include the key number that will eventually specify to the bootloader which evolution of the stream cipher to use as a key. 
-  - The IV for each fram is sent along side their corresponding frame.
+  
   - We break the firmware into smaller frames and protect them individually.
     - We are HMAC'ing the entire firmware, and we are HMAC'ing the metadata as well. These two HMACs are packaged together with the metadata.
    
 
 fw_update:
   - Using the data package bundled by the protect tool, communicate with the bootloader to upload the firmware package to the bootloader. 
-   - Protocol:
+  - The first 16 bytes of each frame being sent is the IV for each frame
+  - Protocol:
     - Handshake (update tool sends U, bootloader sends a U back)
     - Update tool sends over the metadata package (in frames if necessary)
     - Update tool then creates frames (using a piece of the data package and the size of that frame) and sends it to the bootloader sequentially, checking for an ok message each time. 
