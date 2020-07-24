@@ -155,7 +155,8 @@ void load_firmware(void)
       //V 1.3 Cleared writing to UART2, fixed HMAC, adding additional HMAC fore meta data and hopefully etra keys
       //V 1.4 HMACs work, but when HMAC fails no significant deletion of the firmware happens
       //V 1.4.1 Added extra keys
-
+      //V 2.0 Added HAMCS, fixed erease, added multiple keys, cleaned print statements; working on stream cipher generation and will add comments and fixing indentations
+    
       // Initiate context structs for GCM
       br_aes_ct_ctr_keys ctrc;
       br_gcm_context gcmc;
@@ -221,13 +222,7 @@ void load_firmware(void)
       // Compute the HMAC for the meta data
       br_hmac_update(&hmetac, &metadata, 4);
       br_hmac_out(&hmetac, comparemeta);
-      for(i = 0; i < 32; i++){
-      uart_write(UART2, comparemeta[i]);
-  }
-      nl(UART2);
-      for(i = 0; i < 32; i++){
-      uart_write(UART2, metamac[i]);
-  }
+    
       //  Compare the HMACs
       for(i = 0; i < 32; i++){
       if(comparemeta[i]!=metamac[i]){
@@ -239,7 +234,7 @@ void load_firmware(void)
 
           
       uart_write_str(UART2, "\nHMAC passed\n");
-    
+      n1(UART2);
       if (version != 0 && version < old_version) {
         uart_write(UART1, ERROR); // Reject the metadata.
         SysCtlReset(); // Reset device
@@ -272,9 +267,6 @@ void load_firmware(void)
         rcv = uart_read(UART1, BLOCKING, &read);
         frame_length += (int)rcv << 8;
 
-        // Write length debug message
-        uart_write_hex(UART2, frame_length);
-        nl(UART2);
 
 
         // Get the number of bytes specified
@@ -350,14 +342,6 @@ void load_firmware(void)
   br_hmac_update(&hmc, (char *)FW_BASE, firmware_length);
   br_hmac_out(&hmc, comparehmac);
   for(i = 0; i < 32; i++){
-      uart_write(UART2, comparehmac[i]);
-  }
-    nl(UART2);
-  for(i = 0; i < 32; i++){
-      uart_write(UART2, hmac[i]);
-  }
-    nl(UART2);
-  for(i = 0; i < 32; i++){
       if(comparehmac[i]!=hmac[i]){
           erasingadd = 0x10000;
           for(i = 0; i < randomcounter; i++){
@@ -373,7 +357,7 @@ void load_firmware(void)
       }
   }
      
-      uart_write_str(UART2, "\nHMAC passed\n");
+      uart_write_str(UART2, "HMAC passed\n");
       SysCtlReset();
   }
   
