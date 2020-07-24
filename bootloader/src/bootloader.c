@@ -136,6 +136,8 @@ void load_firmware(void)
       //V 0.8(Deleted frame_number)
       //V 1.1 Removed strings, decryption works, adding hmac for first time
       //V 1.2 added more strings, fixing hmac, hoopefully i cleared the strings
+      //V 1.3 Cleared writing to UART2, fixed HMAC, adding additional HMAC and hopefully etra keys
+    
 
       // Initiate context structs for GCM
       br_aes_ct_ctr_keys ctrc;
