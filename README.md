@@ -9,38 +9,50 @@ jakes advice: I would give an overview of the protocol used in your design, and 
 
 xqcL
 
-Stream cipher:
-  - we use the stream cipher to create a key stream that is pseudorandom, and go to a random index of the keystream, then read the next 16 bytes as a key
-
-bl_build: 
-  - Create a seed for the key stream cipher
-  - Store this seed with the rest of the code for the bootloader, as well as in the secret_build_output.txt file. 
+# bl_build: 
+  - Creates a seed for the key stream cipher
+  - Stores this seed with the rest of the code for the bootloader, as well as in the secret_build_output.txt file. 
   - The bootloader generates a main.bin file which has contents of flash memory
 
-fw_protect:
-  - Use GCM to encrypt and add a data signature to the Firmware and packages the metadata. 
-  - It will use a key generated from the seed stored in the secret_build_output.txt file and a key number to determine which part of the stream cipher to use. 
-//- The metadata will include the key number that will eventually specify to the bootloader which evolution of the stream cipher to use as a key. 
+# fw_protect:
+  - Reads in infile, version nuber, and release message
   
-  - We break the firmware into smaller frames and protect them individually.
-    - We are HMAC'ing the entire firmware, and we are HMAC'ing the metadata as well. These two HMACs are packaged together with the metadata.
-   
+  ## Protocal
+    - Combines release message and firmware while adding a nullbyte as a terminator
+    - Generates key from stream cipher
+    - Creates METADATA(version, size, and HMACS)
+    - Creates an HMAC of the firmware and one of the Version and Size using two different keys and adds to METADATA
+    - Breaks the firmware into frames with the first 16 bytes being IV, next 2 being size, variable bytes of cipher text, and the tag as the last 16
+    - Writes METADATA and framed firmware with release message to outdata
 
-fw_update:
-  - Using the data package bundled by the protect tool, communicate with the bootloader to upload the firmware package to the bootloader. 
-  - The first 16 bytes of each frame being sent is the IV for each frame
-  - Protocol:
+# fw_update:
+  - Sends the data from the infile to the bootloader
+  
+  ## Protocol:
     - Handshake (update tool sends U, bootloader sends a U back)
     - Update tool sends over the metadata package (in frames if necessary)
-    - Update tool then creates frames (using a piece of the data package and the size of that frame) and sends it to the bootloader sequentially, checking for an ok message each time. 
+    - Waits for "OK" byte before sending next frame
     - Send a black frame to indicate it is done sending frames
 
-bootloader:
-  - we verify and decrypt all our cryptographic primitives in the bootloader
-  - Read in the metadata, store it on SRAM 
-  - Save incoming firmware on SRAM before loading firmware so you can check the authenticity of the firmware. 
-  - Produce the correct key using the key number on the metadata and the stream cipher with the seed key. 
-  - Decrypt the data using the correct key.
-  - Authenticate the authentication tag and check the version number.
-  - If everything checks out, move firmware to the location of the running firmware in FLASH (main.bin)
-  - If there is an error, delete firmware, and make the update tool wait 1 second.
+# bootloader:
+  - Loads or boots firmware
+  - Rejects older versions or invalid firmware
+  - Generates key with stream cipher
+  ## Protocol:
+    - Waits for byte to specify mode: "U" for update; "B" for boot
+   
+   ### Update mode:
+      - Reads METADATA from update tool
+      - Creates key with stream cipher
+      - Verifies METADATA HMAC
+      - If correct, writes METADATA to address 0xFC00
+      - Reads each frame of firmware
+      - Uses provided IV to decrypt data
+      - Flashes to storage
+      - Verifies firmware HMAC
+      - If wrong, erases firmware
+      - Sends "OK" to indicate end of update
+   ### Boot mode:
+      - Prints release message
+      - Boots firmware
+   
