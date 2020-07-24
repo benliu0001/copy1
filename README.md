@@ -1,4 +1,4 @@
-# design-challenge-error-404-brain-not-found
+<center><h1> design-challenge-error-404-brain-not-found</h1></center>
 design-challenge-error-404-brain-not-found created by GitHub Classroom
 
 This is a readme file. Read me!
@@ -9,15 +9,15 @@ jakes advice: I would give an overview of the protocol used in your design, and 
 
 xqcL
 
-# bl_build: 
+## bl_build: 
   - Creates a seed for the key stream cipher
   - Stores this seed with the rest of the code for the bootloader, as well as in the secret_build_output.txt file. 
   - The bootloader generates a main.bin file which has contents of flash memory
 
-# fw_protect:
+## fw_protect:
   - Reads in infile, version nuber, and release message
   
-  ## Protocol:
+  ### Protocol:
     - Combines release message and firmware while adding a nullbyte as a terminator
     - Generates key from stream cipher
     - Creates METADATA(version, size, and HMACS)
@@ -25,23 +25,23 @@ xqcL
     - Breaks the firmware into frames with the first 16 bytes being IV, next 2 being size, at most 1kb of cipher text, and the tag as the last 16
     - Writes METADATA and framed firmware with release message to outdata
 
-# fw_update:
+## fw_update:
   - Sends the data from the infile to the bootloader
   
-  ## Protocol:
+  ### Protocol:
     - Handshake (update tool sends U, bootloader sends a U back)
     - Update tool sends over the metadata package (in frames if necessary)
     - Waits for "OK" byte before sending next frame
     - Send a black frame to indicate it is done sending frames
 
-# bootloader:
+## bootloader:
   - Loads or boots firmware
   - Rejects older versions or invalid firmware
   - Generates key with stream cipher
-  ## Protocol:
+  ### Protocol:
     - Waits for byte to specify mode: "U" for update; "B" for boot
    
-   ### Update mode:
+   #### Update mode:
       - Reads METADATA from update tool
       - Creates key with stream cipher
       - Verifies METADATA HMAC
@@ -52,7 +52,7 @@ xqcL
       - Verifies firmware HMAC
       - If wrong, erases firmware
       - Sends "OK" to indicate end of update
-   ### Boot mode:
+   #### Boot mode:
       - Prints release message
       - Boots firmware
    
