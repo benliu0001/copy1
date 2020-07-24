@@ -9,6 +9,9 @@ jakes advice: I would give an overview of the protocol used in your design, and 
 
 xqcL
 
+Stream cipher:
+  - we use the stream cipher to create a key stream that is pseudorandom, and go to a random index of the keystream, then read the next 16 bytes as a key
+
 bl_build: 
   - Create a seed for the key stream cipher
   - Store this seed with the rest of the code for the bootloader, as well as in the secret_build_output.txt file. 
