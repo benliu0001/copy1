@@ -124,6 +124,9 @@ void load_initial_firmware(void) {
 void get_current_key(char* seed, char* key, int startval){
     //Attempting to put in stream cipher (using aeskey) 
     //all variables should be compariable to the python stream cipher (just no seperate functions)
+    int i;
+    int K;
+    char streamkey[16];
     char S_array[256];
     for (i=0; i<256; i++){ //fills S_array in with values 0-255??
         S_array[i] = i;
@@ -186,8 +189,6 @@ void load_firmware(void)
       char firmkey[16];
       char metakey[16];
       char seed[16] = SEED;
-      char streamkey[16];
-      char stm_start[2];
       size_t iv_length, key_length;
       size_t firmware_length;
       iv_length = 16;
@@ -210,6 +211,9 @@ void load_firmware(void)
       get_current_key(seed, aeskey, (version*122)%10240);
       get_current_key(seed, firmkey, (size*24)%10240);
       get_current_key(seed, metakey, (size % version));
+      for (i=0;i<16;i++){
+          uart_write_hex(UART2, metakey[i]);
+      }
     
       // Initiate context structs for GCM
       br_aes_ct_ctr_keys ctrc;

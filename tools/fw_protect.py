@@ -75,9 +75,12 @@ def protect_firmware(infile, outfile, version, message): #Big Function - encypts
     lengthfirm = len(firmware) 
     
     #getting all the keys
-    aeskey = get_key(aeskey, stm_start)
-    firmkey = get_key(aeskey, stm_start)
-    metakey = get_key(aeskey, stm_start)
+    aeskey = get_key(seed, (version*122)%10240)
+    firmkey = get_key(seed, (lengthfirm*24)%10240)
+    metakey = get_key(seed, lengthfirm % version)
+    print("firm length",lengthfirm)
+    print("version",version)
+    print("py meta",metakey)
     
     hmac = get_HMAC(firmware, firmkey)
     metahmac = get_HMAC(struct.pack('<HH', version, lengthfirm), metakey)
@@ -94,12 +97,12 @@ def protect_firmware(infile, outfile, version, message): #Big Function - encypts
     for i in range(0,len(firmware_and_message),1024):
         whatwewant = firmware_and_message[i:i+1024]
         frame = struct.pack('{}s'.format(len(whatwewant)), whatwewant)
-        frame_encrypt = AES.new(currentkey, AES.MODE_GCM)
+        frame_encrypt = AES.new(aeskey, AES.MODE_GCM)
         frame_encrypt.update(metadata[0:4])
         ciphertext, tag = frame_encrypt.encrypt_and_digest(frame)
         nonce = frame_encrypt.nonce
         #nonce | length ciphertext | ciphertext (within has framenum then firmware/release message) | tag
-        sendoverframe = struct.pack('<16sH{}s16sh'.format(len(ciphertext)), nonce, len(whatwewant), ciphertext, tag)
+        sendoverframe = struct.pack('<16sH{}s16s'.format(len(ciphertext)), nonce, len(whatwewant), ciphertext, tag)
 
         # Write the encrypted frame to outfile
         with open(outfile, 'ab') as fb:
