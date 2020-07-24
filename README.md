@@ -12,7 +12,7 @@ xqcL
 ## bl_build: 
   - Creates a seed for the key stream cipher
   - Stores this seed with the rest of the code for the bootloader, as well as in the secret_build_output.txt file. 
-  -. The bootloader generates a main.bin file which has contents of flash memory
+  - The bootloader generates a main.bin file which has contents of flash memory
 
 ## fw_protect:
   - Reads in infile, version nuber, and release message
