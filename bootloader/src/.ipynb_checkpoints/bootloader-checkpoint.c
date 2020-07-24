@@ -234,7 +234,7 @@ void load_firmware(void)
 
           
       uart_write_str(UART2, "\nHMAC passed\n");
-      n1(UART2);
+      nl(UART2);
       if (version != 0 && version < old_version) {
         uart_write(UART1, ERROR); // Reject the metadata.
         SysCtlReset(); // Reset device
@@ -319,6 +319,7 @@ void load_firmware(void)
       uart_write_str(UART2, "\nBytes: ");
       uart_write_hex(UART2, data_index);
       nl(UART2);
+      nl(UART2);
 #endif
 
       // Update to next page
@@ -342,7 +343,7 @@ void load_firmware(void)
   br_hmac_update(&hmc, (char *)FW_BASE, firmware_length);
   br_hmac_out(&hmc, comparehmac);
   for(i = 0; i < 32; i++){
-      if(comparehmac[i]!=hmac[i]){
+      if(1){
           erasingadd = 0x10000;
           for(i = 0; i < randomcounter; i++){
           uart_write_str(UART2, "Deleting page: ");
