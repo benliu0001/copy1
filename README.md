@@ -22,7 +22,7 @@ xqcL
     - Generates key from stream cipher
     - Creates METADATA(version, size, and HMACS)
     - Creates an HMAC of the firmware and one of the Version and Size using two different keys and adds to METADATA
-    - Breaks the firmware into frames with the first 16 bytes being IV, next 2 being size, variable bytes of cipher text, and the tag as the last 16
+    - Breaks the firmware into frames with the first 16 bytes being IV, next 2 being size, at most 1kb of cipher text, and the tag as the last 16
     - Writes METADATA and framed firmware with release message to outdata
 
 # fw_update:
