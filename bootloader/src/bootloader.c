@@ -38,6 +38,8 @@ long program_flash(uint32_t, unsigned char*, unsigned int);
 #define BOOT ((unsigned char)'B')
 
 
+
+
 // Firmware v2 is embedded in bootloader
 extern int _binary_firmware_bin_start;
 extern int _binary_firmware_bin_size;
@@ -117,6 +119,49 @@ void load_initial_firmware(void) {
   program_flash(FW_BASE + (i * FLASH_PAGESIZE), ((unsigned char *) data) + (i * FLASH_PAGESIZE), size % FLASH_PAGESIZE);
 }
 
+
+
+void get_current_key(char* seed, char* key, int startval){
+    //Attempting to put in stream cipher (using aeskey) 
+    //all variables should be compariable to the python stream cipher (just no seperate functions)
+    char S_array[256];
+    for (i=0; i<256; i++){ //fills S_array in with values 0-255??
+        S_array[i] = i;
+    }
+    int j=0;
+    int temp;
+    for (i=0; i<256; i++){
+        j = (j + S_array[i] + seed[i % 16]) % 256; //16 is key_length
+        temp = S_array[i]; //swap values
+        S_array[j] = S_array[i];
+        S_array[i] = temp;
+    }
+  
+    int n;
+    i=0;
+    j=0;
+    for (n=0; n<startval; n++){ //run until you get to the start value def in protect tool
+        i = (i + 1) % 256;
+        j = (j + S_array[i]) % 256;
+        temp = S_array[i]; //swap values
+        S_array[j] = S_array[i];
+        S_array[i] = temp;
+        K = S_array[(S_array[i] + S_array[j]) % 256];
+    }
+    for (n=0; n<16; n++){  //runing to get the actual key value
+        i = (i + 1) % 256;
+        j = (j + S_array[i]) % 256;
+        temp = S_array[i]; //swap values
+        S_array[j] = S_array[i];
+        S_array[i] = temp;
+        K = S_array[(S_array[i] + S_array[j]) % 256];
+        streamkey[n] = K;
+    }
+    key = streamkey; 
+    
+}
+
+
 // secret_build_output.txt
 /*
  * Load the firmware into flash.
@@ -137,9 +182,12 @@ void load_firmware(void)
       char comparemeta[32];
       char comparehmac[32];
       char iv[16];
-      char aeskey[16] = AESKEY;
-      char firmkey[16] = FIRMKEY;
-      char metakey[16] = METAKEY;
+      char aeskey[16];
+      char firmkey[16];
+      char metakey[16];
+      char seed[16] = SEED;
+      char streamkey[16];
+      char stm_start[2];
       size_t iv_length, key_length;
       size_t firmware_length;
       iv_length = 16;
@@ -156,6 +204,12 @@ void load_firmware(void)
       //V 1.4 HMACs work, but when HMAC fails no significant deletion of the firmware happens
       //V 1.4.1 Added extra keys
       //V 2.0 Added HAMCS, fixed erease, added multiple keys, cleaned print statements; working on stream cipher generation and will add comments and fixing indentations
+      
+    
+      //get all the keys
+      get_current_key(seed, aeskey, (version*122)%10240);
+      get_current_key(seed, firmkey, (size*24)%10240);
+      get_current_key(seed, metakey, (size % version));
     
       // Initiate context structs for GCM
       br_aes_ct_ctr_keys ctrc;
@@ -214,6 +268,11 @@ void load_firmware(void)
 
       // Compare to old version and abort if older (note special case for version 0).
       uint16_t old_version = *fw_version_address;
+      
+    
+    
+
+    
     
       // Creates metadata number
       
@@ -251,6 +310,9 @@ void load_firmware(void)
       fw_release_message_address = (uint8_t *) (FW_BASE + size);
       uart_write(UART1, OK); // Acknowledge the metadata.
       
+      
+    
+    
       /* Loop here until you can get all your characters and stuff */
       while (1) {
           
@@ -281,8 +343,10 @@ void load_firmware(void)
         for (i = 0; i < 16; i++){
             tag[i] = uart_read(UART1, BLOCKING, &read);
         }
-          
-          
+        
+
+              
+    
       // Reset the GCM context 
       br_gcm_reset(&gcmc, iv, iv_length);
           
