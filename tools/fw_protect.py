@@ -1,4 +1,4 @@
-"""
+    """
 Firmware Bundle-and-Protect Tool
 
 """

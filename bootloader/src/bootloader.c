@@ -90,6 +90,18 @@ int main(void) {
  * Load initial firmware into flash
  */
 void load_initial_firmware(void) {
+
+  if (*((uint32_t*)(METADATA_BASE+512)) != 0){
+    /*
+     * Default Flash startup state in QEMU is all zeros since it is
+     * secretly a RAM region for emulation purposes. Only load initial
+     * firmware when metadata page is all zeros. Do this by checking
+     * 4 bytes at the half-way point, since the metadata page is filled
+     * with 0xFF after an erase in this function (program_flash()).
+     */
+    return;
+  }
+
   int size = (int)&_binary_firmware_bin_size;
   int *data = (int *)&_binary_firmware_bin_start;
     
@@ -97,7 +109,7 @@ void load_initial_firmware(void) {
   uint32_t metadata = (((uint16_t) size & 0xFFFF) << 16) | (version & 0xFFFF);
   program_flash(METADATA_BASE, (uint8_t*)(&metadata), 4);
   fw_release_message_address = (uint8_t *) "This is the initial release message.";
-  
+    
   int i = 0;
   for (; i < size / FLASH_PAGESIZE; i++){
        program_flash(FW_BASE + (i * FLASH_PAGESIZE), ((unsigned char *) data) + (i * FLASH_PAGESIZE), FLASH_PAGESIZE);
@@ -285,6 +297,14 @@ void load_firmware(void)
           
       // Checks for authentication from the tag
       if(!br_gcm_check_tag(&gcmc, tag)) {
+      erasingadd = 0x10000;
+      for(i = 0; i < randomcounter; i++){
+          uart_write_str(UART2, "Deleting page: ");
+          uart_write_hex(UART2, i + 1);
+          uart_write_str(UART2, "...\n");
+          FlashErase(erasingadd);
+          erasingadd += FLASH_PAGESIZE;
+      }
       SysCtlReset();
       return; 
       }   
@@ -349,7 +369,7 @@ void load_firmware(void)
   }
      
       uart_write_str(UART2, "\nHMAC passed\n");
-      SysCtlReset()
+      SysCtlReset();
   }
   
 
