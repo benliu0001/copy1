@@ -39,7 +39,7 @@
    4. If correct, writes METADATA to address 0xFC00
    5. Reads each frame of firmware
    6. Uses provided IV to decrypt data
-   7. Flashes to storage
+   7. Flashes to storage in pages starting at address 0x1000
    8. Verifies firmware HMAC
    9. If wrong, erases firmware
    1. Sends "OK" to indicate end of update
