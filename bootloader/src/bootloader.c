@@ -227,6 +227,7 @@ void load_firmware(void)
       for(i = 0; i < 32; i++){
       if(comparemeta[i]!=metamac[i]){
           uart_write_str(UART2, "\nHMAC failed");
+          nl(UART2);
           SysCtlReset();
           return;
       }
@@ -353,12 +354,14 @@ void load_firmware(void)
           erasingadd += FLASH_PAGESIZE;
       }
           uart_write_str(UART2, "\nHMAC failed\n");
+          nl(UART2);
           SysCtlReset();
           return;
       }
   }
      
       uart_write_str(UART2, "HMAC passed\n");
+      nl(UART2);
       SysCtlReset();
   }
   
