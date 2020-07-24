@@ -19,12 +19,12 @@ bl_build:
 
 fw_protect:
   - Use GCM to encrypt and add a data signature to the Firmware and packages the metadata. 
-    - an HMAC of the metadata will be packaged with the metadata
   - It will use a key generated from the seed stored in the secret_build_output.txt file and a key number to determine which part of the stream cipher to use. 
-  - The metadata will include the key number that will eventually specify to the bootloader which evolution of the stream cipher to use as a key. 
-  - The metadata will also include the IV that is used to start encrypting the data (random IV).
+//- The metadata will include the key number that will eventually specify to the bootloader which evolution of the stream cipher to use as a key. 
+  - The IV for each fram is sent along side their corresponding frame.
   - We break the firmware into smaller frames and protect them individually.
-    -We are HMAC'ing the entire firmware which will then be verified in the bootloader
+    - We are HMAC'ing the entire firmware, and we are HMAC'ing the metadata as well. These two HMACs are packaged together with the metadata.
+   
 
 fw_update:
   - Using the data package bundled by the protect tool, communicate with the bootloader to upload the firmware package to the bootloader. 
