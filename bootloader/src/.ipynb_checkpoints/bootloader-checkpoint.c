@@ -137,7 +137,9 @@ void load_firmware(void)
       char comparemeta[32];
       char comparehmac[32];
       char iv[16];
-      char key[16] = GEN_KEY;
+      char aeskey[16] = AESKEY;
+      char firmkey[16] = FIRMKEY;
+      char metakey[16] = METAKEY;
       size_t iv_length, key_length;
       size_t firmware_length;
       iv_length = 16;
@@ -152,24 +154,26 @@ void load_firmware(void)
       //V 1.2 added more strings, fixing hmac, hoopefully i cleared the strings
       //V 1.3 Cleared writing to UART2, fixed HMAC, adding additional HMAC fore meta data and hopefully etra keys
       //V 1.4 HMACs work, but when HMAC fails no significant deletion of the firmware happens
-    
+      //V 1.4.1 Added extra keys
 
       // Initiate context structs for GCM
       br_aes_ct_ctr_keys ctrc;
       br_gcm_context gcmc;
 
       // Initiate context structs for HMAC
-      br_hmac_key_context kc;
+      br_hmac_key_context metac;
+      br_hmac_key_context firmc;
       br_hmac_context hmetac;
       br_hmac_context hmc;
       
       // Create contexts for HMAC
-      br_hmac_key_init(&kc, &br_sha256_vtable, key, key_length);
-      br_hmac_init(&hmetac, &kc, 0);
-      br_hmac_init(&hmc, &kc, 0);
+      br_hmac_key_init(&metac, &br_sha256_vtable, metakey, key_length);
+      br_hmac_key_init(&firmc, &br_sha256_vtable, firmkey, key_length);
+      br_hmac_init(&hmetac, &metac, 0);
+      br_hmac_init(&hmc, &firmc, 0);
     
       // Create contexts for cipher
-      br_aes_ct_ctr_init(&ctrc,key,key_length);
+      br_aes_ct_ctr_init(&ctrc,aeskey,key_length);
       br_gcm_init(&gcmc, &ctrc.vtable, br_ghash_ctmul32);
     
 
@@ -298,6 +302,7 @@ void load_firmware(void)
       // Checks for authentication from the tag
       if(!br_gcm_check_tag(&gcmc, tag)) {
       erasingadd = 0x10000;
+      uart_write_str(UART2, "Authentication failed");
       for(i = 0; i < randomcounter; i++){
           uart_write_str(UART2, "Deleting page: ");
           uart_write_hex(UART2, i + 1);
