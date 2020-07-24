@@ -1,4 +1,4 @@
-<center><h1> design-challenge-error-404-brain-not-found</h1></center>
+# design-challenge-error-404-brain-not-found
 design-challenge-error-404-brain-not-found created by GitHub Classroom
 
 This is a readme file. Read me!
