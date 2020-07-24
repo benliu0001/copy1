@@ -24,7 +24,9 @@ def protect_firmware(infile, outfile, version, message):
     #1 page per 'frame'
     #Load key from secret_build_output.txt
     with open('secret_build_output.txt', 'rb') as sbo:
-        key = sbo.read()
+        aeskey = sbo.read(16)
+        firmkey = sbo.read(16)
+        metakey = sbo.read(16)
         #if we were to have a seed, would happen here??
     
     # Load firmware binary from infile
@@ -32,9 +34,8 @@ def protect_firmware(infile, outfile, version, message):
         firmware = fp.read()
     firmware_and_message = firmware + message.encode() + b'\x00'
     lengthfirm = len(firmware) 
-    HMAC_Key = key
-    hmac = get_HMAC(firmware, HMAC_Key)
-    metahmac = get_HMAC(struct.pack('<HH', version, lengthfirm), HMAC_Key)
+    hmac = get_HMAC(firmware, firmkey)
+    metahmac = get_HMAC(struct.pack('<HH', version, lengthfirm), metakey)
     metadata = struct.pack('<HH32s32s', version, lengthfirm, hmac, metahmac)
     
     

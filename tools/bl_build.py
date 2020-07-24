@@ -17,8 +17,10 @@ import Crypto.Random
 FILE_DIR = pathlib.Path(__file__).parent.absolute()
 
 fp = open("secret_build_output.txt", "wb") #make secret_build_output.txt file, w means create if doesn't exist already
-
-key = Crypto.Random.get_random_bytes(16) #creates a random key of letters and numbers, 16 characters (16 bytes)
+#Key for AES
+aeskey = Crypto.Random.get_random_bytes(16) #creates a random key of letters and numbers, 16 characters (16 bytes)
+firmkey = Crypto.Random.get_random_bytes(16) # key for firmware hmac
+metakey = Crypto.Random.get_random_bytes(16) # key for metadata hmac
 fp.write(key)  #write the key to the file
 
 fp.close() #close fp (secret_build_output.txt file)
@@ -50,7 +52,10 @@ def make_bootloader():
     os.chdir(bootloader)
 
     subprocess.call('make clean', shell=True)
-    status = subprocess.call(f'make KEY={to_c_array(key)}', shell=True)
+    status = subprocess.call(f'make AESKEY={to_c_array(aeskey)}', shell=True)
+    status = subprocess.call(f'make FIRMKEY={to_c_array(firmkey)}', shell=True)
+    status = subprocess.call(f'make METAKEY={to_c_array(metakey)}', shell=True)
+
 
     # Return True if make returned 0, otherwise return False.
     return (status == 0)
