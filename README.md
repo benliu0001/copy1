@@ -10,9 +10,9 @@ jakes advice: I would give an overview of the protocol used in your design, and 
 xqcL
 
 ## bl_build: 
-  1. Creates a seed for the key stream cipher
-  2. Stores this seed with the rest of the code for the bootloader, as well as in the secret_build_output.txt file. 
-  3. The bootloader generates a main.bin file which has contents of flash memory
+  - Creates a seed for the key stream cipher
+  - Stores this seed with the rest of the code for the bootloader, as well as in the secret_build_output.txt file. 
+  -. The bootloader generates a main.bin file which has contents of flash memory
 
 ## fw_protect:
   - Reads in infile, version nuber, and release message
