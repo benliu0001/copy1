@@ -15,13 +15,15 @@ import string
 import Crypto.Random
 
 FILE_DIR = pathlib.Path(__file__).parent.absolute()
-
-fp = open("secret_build_output.txt", "wb") #make secret_build_output.txt file, w means create if doesn't exist already
+fp = open("secret_build_output.txt", "wb").close()
+fp = open("secret_build_output.txt", "ab") #make secret_build_output.txt file, w means create if doesn't exist already
 #Key for AES
 aeskey = Crypto.Random.get_random_bytes(16) #creates a random key of letters and numbers, 16 characters (16 bytes)
 firmkey = Crypto.Random.get_random_bytes(16) # key for firmware hmac
 metakey = Crypto.Random.get_random_bytes(16) # key for metadata hmac
-fp.write(key)  #write the key to the file
+fp.write(aeskey)
+fp.write(firmkey)
+fp.write(metakey)#write the key to the file
 
 fp.close() #close fp (secret_build_output.txt file)
 
