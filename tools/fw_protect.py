@@ -34,9 +34,10 @@ def protect_firmware(infile, outfile, version, message):
     lengthfirm = len(firmware) 
     HMAC_Key = key
     hmac = get_HMAC(firmware, HMAC_Key)
-
-    metadata = struct.pack('<HH32s', version, lengthfirm, hmac)
-
+    metahmac = get_HMAC(struct.pack('<HH', version, lengthfirm), HMAC_Key)
+    metadata = struct.pack('<HH32s32s', version, lengthfirm, hmac, metahmac)
+    
+    
     
 
 

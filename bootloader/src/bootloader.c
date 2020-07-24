@@ -1,4 +1,4 @@
-v // Hardware Imports
+// Hardware Imports
 #include "inc/hw_memmap.h" // Peripheral Base Addresses
 #include "inc/lm3s6965.h" // Peripheral Bit Masks and Registers
 #include "inc/hw_types.h" // Boolean type
@@ -119,9 +119,11 @@ void load_firmware(void)
       size_t data_length, aad_length;
       aad_length = 4;
       char hmac[32];
+      char metamac[32];
       int randomcounter = 0;
       int erasingadd = 0;
-      char compare[32];
+      char comparemeta[32];
+      char comparehmac[32];
       char iv[16];
       char key[16] = GEN_KEY;
       size_t iv_length, key_length;
@@ -136,7 +138,8 @@ void load_firmware(void)
       //V 0.8(Deleted frame_number)
       //V 1.1 Removed strings, decryption works, adding hmac for first time
       //V 1.2 added more strings, fixing hmac, hoopefully i cleared the strings
-      //V 1.3 Cleared writing to UART2, fixed HMAC, adding additional HMAC and hopefully etra keys
+      //V 1.3 Cleared writing to UART2, fixed HMAC, adding additional HMAC fore meta data and hopefully etra keys
+      //V 1.4 HMACs work, but when HMAC fails no significant deletion of the firmware happens
     
 
       // Initiate context structs for GCM
@@ -145,11 +148,18 @@ void load_firmware(void)
 
       // Initiate context structs for HMAC
       br_hmac_key_context kc;
+      br_hmac_context hmetac;
       br_hmac_context hmc;
-
+      
+      // Create contexts for HMAC
+      br_hmac_key_init(&kc, &br_sha256_vtable, key, key_length);
+      br_hmac_init(&hmetac, &kc, 0);
+      br_hmac_init(&hmc, &kc, 0);
+    
       // Create contexts for cipher
       br_aes_ct_ctr_init(&ctrc,key,key_length);
       br_gcm_init(&gcmc, &ctrc.vtable, br_ghash_ctmul32);
+    
 
       // Get version.
       rcv = uart_read(UART1, BLOCKING, &read);
@@ -173,18 +183,47 @@ void load_firmware(void)
       uart_write_hex(UART2, size);
       nl(UART2);
 
+         
       //Get HMAC
         for(i = 0; i < 32; i++){
             hmac[i] = uart_read(UART1, BLOCKING, &read);
         }
 
-      uart_write_str(UART2, "Received Firmware HMAC: ");
-      uart_write_str(UART2, hmac);
-      nl(UART2);
+      //Get HMAC for meta data
+        for(i = 0; i < 32; i++){
+            metamac[i] = uart_read(UART1, BLOCKING, &read);
+        }
+
 
       // Compare to old version and abort if older (note special case for version 0).
       uint16_t old_version = *fw_version_address;
+    
+      // Creates metadata number
+      
+      int32_t metadata = ((size & 0xFFFF) << 16) | (version & 0xFFFF);
+    
+      // Compute the HMAC for the meta data
+      br_hmac_update(&hmetac, &metadata, 4);
+      br_hmac_out(&hmetac, comparemeta);
+      for(i = 0; i < 32; i++){
+      uart_write(UART2, comparemeta[i]);
+  }
+      nl(UART2);
+      for(i = 0; i < 32; i++){
+      uart_write(UART2, metamac[i]);
+  }
+      //  Compare the HMACs
+      for(i = 0; i < 32; i++){
+      if(comparemeta[i]!=metamac[i]){
+          uart_write_str(UART2, "\nHMAC failed");
+          SysCtlReset();
+          return;
+      }
+  }
 
+          
+      uart_write_str(UART2, "\nHMAC passed\n");
+    
       if (version != 0 && version < old_version) {
         uart_write(UART1, ERROR); // Reject the metadata.
         SysCtlReset(); // Reset device
@@ -196,13 +235,16 @@ void load_firmware(void)
 
       // Write new firmware size and version to Flash
       // Create 32 bit word for flash programming, version is at lower address, size is at higher address
-      uint32_t metadata = ((size & 0xFFFF) << 16) | (version & 0xFFFF);
       program_flash(METADATA_BASE, (uint8_t*)(&metadata), 4);
       fw_release_message_address = (uint8_t *) (FW_BASE + size);
       uart_write(UART1, OK); // Acknowledge the metadata.
+      
       /* Loop here until you can get all your characters and stuff */
       while (1) {
-
+          
+        //Counts the amount of pages flashed 
+        randomcounter++;
+          
         // Read the nonce.
         for(i = 0; i < 16; i++){
           iv[i] = uart_read(UART1, BLOCKING, &read);
@@ -243,6 +285,7 @@ void load_firmware(void)
           
       // Checks for authentication from the tag
       if(!br_gcm_check_tag(&gcmc, tag)) {
+      SysCtlReset();
       return; 
       }   
       // Try to write flash and check for error
@@ -275,29 +318,38 @@ void load_firmware(void)
         uart_write(UART1, OK);
         break;
       }
-    randomcounter++;
           
     uart_write(UART1, OK); // Acknowledge the frame.
   } // while(1)
-    
-  br_hmac_key_init(&kc, &br_sha256_vtable, key, key_length);
-  br_hmac_init(&hmc, &kc, 0);
+  // Compare the HMAC    
   br_hmac_update(&hmc, (char *)FW_BASE, firmware_length);
-  br_hmac_out(&hmc, compare);
+  br_hmac_out(&hmc, comparehmac);
   for(i = 0; i < 32; i++){
-      if(compare[i]!=hmac[i]){
-          erasingadd = 0x1000;
+      uart_write(UART2, comparehmac[i]);
+  }
+    nl(UART2);
+  for(i = 0; i < 32; i++){
+      uart_write(UART2, hmac[i]);
+  }
+    nl(UART2);
+  for(i = 0; i < 32; i++){
+      if(comparehmac[i]!=hmac[i]){
+          erasingadd = 0x10000;
           for(i = 0; i < randomcounter; i++){
+          uart_write_str(UART2, "Deleting page: ");
+          uart_write_hex(UART2, i + 1);
+          uart_write_str(UART2, "...\n");
           FlashErase(erasingadd);
           erasingadd += FLASH_PAGESIZE;
       }
-          uart_write_str(UART2, "\nHMAC failed");
+          uart_write_str(UART2, "\nHMAC failed\n");
+          SysCtlReset();
           return;
       }
   }
-
-          
-      uart_write_str(UART2, "\nHMAC passed");
+     
+      uart_write_str(UART2, "\nHMAC passed\n");
+      SysCtlReset()
   }
   
 
