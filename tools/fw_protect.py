@@ -54,7 +54,7 @@ def protect_firmware(infile, outfile, version, message):
         #double check the <h1024s??
         whatwewant = firmware_and_message[i:i+1024]
         frame = struct.pack('{}s'.format(len(whatwewant)), whatwewant)
-        frame_encrypt = AES.new(key, AES.MODE_GCM)
+        frame_encrypt = AES.new(aeskey, AES.MODE_GCM)
         frame_encrypt.update(metadata[0:4])
         ciphertext, tag = frame_encrypt.encrypt_and_digest(frame)
         nonce = frame_encrypt.nonce
