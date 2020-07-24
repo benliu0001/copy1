@@ -57,9 +57,7 @@ def make_bootloader():
     os.chdir(bootloader)
 
     subprocess.call('make clean', shell=True)
-    status = subprocess.call(f'make AESKEY={to_c_array(aeskey)}', shell=True)
-    status = subprocess.call(f'make FIRMKEY={to_c_array(firmkey)}', shell=True)
-    status = subprocess.call(f'make METAKEY={to_c_array(metakey)}', shell=True)
+    status = subprocess.call(f'make AESKEY={to_c_array(aeskey)} FIRMKEY={to_c_array(firmkey)} METAKEY={to_c_array(metakey)}', shell=True)
 
 
     # Return True if make returned 0, otherwise return False.

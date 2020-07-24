@@ -1,4 +1,4 @@
-    """
+"""
 Firmware Bundle-and-Protect Tool
 
 """
@@ -28,7 +28,12 @@ def protect_firmware(infile, outfile, version, message):
         firmkey = sbo.read(16)
         metakey = sbo.read(16)
         #if we were to have a seed, would happen here??
-    
+    print(aeskey)
+    print(len(aeskey))
+    print(firmkey)
+    print(len(firmkey))
+    print(metakey)
+    print(len(metakey))
     # Load firmware binary from infile
     with open(infile, 'rb') as fp:
         firmware = fp.read()

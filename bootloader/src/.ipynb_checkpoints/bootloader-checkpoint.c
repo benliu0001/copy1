@@ -148,7 +148,7 @@ void load_firmware(void)
       uint32_t page_addr = FW_BASE;
       uint32_t version = 0;
       uint32_t size = 0;
-      //V 0.7/
+      //V 0.7
       //V 0.8(Deleted frame_number)
       //V 1.1 Removed strings, decryption works, adding hmac for first time
       //V 1.2 added more strings, fixing hmac, hoopefully i cleared the strings
