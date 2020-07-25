@@ -211,9 +211,17 @@ void load_firmware(void)
       get_current_key(seed, aeskey, (version*122)%10240);
       get_current_key(seed, firmkey, (size*24)%10240);
       get_current_key(seed, metakey, (size % version));
+      uart_write_str(UART2, "Meta key: ");
       for (i=0;i<16;i++){
           uart_write_hex(UART2, metakey[i]);
       }
+      uart_write_str(UART2, "Seed: ");
+      for (i=0;i<16;i++){
+          uart_write_hex(UART2,seed[i]);
+      }
+      uart_write_str(UART2, "startval meta: ");
+      uart_write_hex(UART2, (size % version));
+      
     
       // Initiate context structs for GCM
       br_aes_ct_ctr_keys ctrc;

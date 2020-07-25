@@ -78,9 +78,14 @@ def protect_firmware(infile, outfile, version, message): #Big Function - encypts
     aeskey = get_key(seed, (version*122)%10240)
     firmkey = get_key(seed, (lengthfirm*24)%10240)
     metakey = get_key(seed, lengthfirm % version)
+    print("seed",seed)
+    print("py meta key",metakey)
     print("firm length",lengthfirm)
     print("version",version)
-    print("py meta",metakey)
+    print("startval aes/firm/meta",(version*122)%10240, "++",(lengthfirm*24)%10240, "++", lengthfirm % version)
+    
+    
+
     
     hmac = get_HMAC(firmware, firmkey)
     metahmac = get_HMAC(struct.pack('<HH', version, lengthfirm), metakey)
