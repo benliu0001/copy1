@@ -61,3 +61,6 @@
    1. Prints release message
    2. Boots firmware
    
+## Using the bootloader
+
+## Using the firmware tools
