@@ -8,6 +8,12 @@
 ## fw_protect:
   - Reads in infile, version nuber, and release message
   
+  ### Variables:
+   - infile (Specifies file to protect)
+   - outfile (Specifies file to write to)
+   - message (Uses as release message)
+   - version (Specifies firmware version number)
+    
   ### Protocol:
    1. Combines release message and firmware while adding a nullbyte as a terminator
    2. Generates key from stream cipher
@@ -19,19 +25,27 @@
 ## fw_update:
   - Sends the data from the infile to the bootloader
   
+  ### Variables:
+   - port (Port to write to)
+   - firmware (Chooses file to install)
+   - [debug] (Turns on debug mode)
+   
   ### Protocol:
    1. Handshake (update tool sends U, bootloader sends a U back)
    2. Update tool sends over the metadata package (in frames if necessary)
    4. Waits for "OK" byte before sending next frame
    5. Send a black frame to indicate it is done sending frames
+   
+   **_NOTE:_**    If debug is turned on extra data is printed to screen
 
 ## bootloader:
   - Loads or boots firmware
   - Rejects older versions or invalid firmware
   - Generates key with stream cipher
+  - Prints to UART2
   ### Protocol:
    - Waits for byte to specify mode: "U" for update; "B" for boot
-   
+   - 0x20 to UART0 resets device
    #### Update mode:
    1. Reads METADATA from update tool
    2. Creates key with stream cipher
