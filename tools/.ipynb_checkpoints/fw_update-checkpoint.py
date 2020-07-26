@@ -30,7 +30,7 @@ FRAME_SIZE = 16
 #when implimenting the HMAC - add hmac as another argument
 def send_metadata(ser, metadata, debug=False):
     version, size, HMAC = struct.unpack_from('<HH32s', metadata)
-    print(f'Version: {version}\nSize: {size} bytes\nHMAC: {HMAC}\n')
+    print(f'**UPDATE TOOL** Version: {version}\nSize: {size} bytes\nHMAC: {HMAC}\n')
 
 
     # Handshake for update
@@ -42,12 +42,14 @@ def send_metadata(ser, metadata, debug=False):
 
     # Send size and version to bootloader.
     if debug:
-        print(metadata)
+        print("**UPDATE TOOL/metadata**",metadata)
 
     ser.write(metadata)
+    print("update tool - attempted to send metadata")
     #ser.write(hmac) #writes the hmac. We need to change the function to be able to pass in an 'hmac' parameter
     # Wait for an OK from the bootloader.
     resp = ser.read()
+    print("update tool - this is the responce, want 00s??",resp)
     if resp != RESP_OK:
         raise RuntimeError("ERROR: Bootloader responded with {}".format(repr(resp)))
 
@@ -56,7 +58,7 @@ def send_frame(ser, frame, debug=False):
     ser.write(frame)  # Write the frame...
 
     if debug:
-        print(frame)
+        print("**UPDATE TOOL/frame**",frame)
 
     resp = ser.read()  # Wait for an OK from the bootloader
 
@@ -66,7 +68,7 @@ def send_frame(ser, frame, debug=False):
         raise RuntimeError("ERROR: Bootloader responded with {}".format(repr(resp)))
 
     if debug:
-        print("Resp: {}".format(ord(resp)))
+        print("**UPDATE TOOL** Resp: {}".format(ord(resp)))
 
 
 def main(ser, infile, debug):
@@ -79,7 +81,7 @@ def main(ser, infile, debug):
     #figure out how long hmac is
     #hmac = firmware_blob[4:36]
     firmware = firmware_blob[68:] #new line after HMAC is implemented: firmware = firmware_blob[36:]
-    print(metadata)
+    print("**UPDATE TOOL, metadata in main func",metadata)
     
     send_metadata(ser, metadata, debug=debug)
     for idx, frame_start in enumerate(range(0, len(firmware), 1058)):
@@ -91,11 +93,11 @@ def main(ser, infile, debug):
         # Construct frame.
    #     frame = struct.pack(frame_fmt, length, data)
         if debug:
-            print("Writing frame {} ({} bytes)...".format(idx, len(data)))
+            print("UPDATE TOOL - Writing frame {} ({} bytes)...".format(idx, len(data)))
             
         send_frame(ser, data, debug=debug)
         
-    print("Done writing firmware.")
+    print("UPDATE TOOL - Done writing firmware.")
 
     # Send a zero length payload to tell the bootlader to finish writing it's page.
     ser.write(struct.pack('>H', 0x0000))

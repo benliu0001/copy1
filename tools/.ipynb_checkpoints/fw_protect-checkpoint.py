@@ -28,9 +28,11 @@ def KSA(key): #creates an array with values 0-255 in random order (based on key)
     j = 0
     for i in range(256):
         j = (j + S[i] + key[i % key_length]) % 256
+        print("after j",j)
         temp = S[i] #swap S[i] and S[j]
         S[i] = S[j]
         S[j] = temp
+    print("This is the S-array in python",S)
     return S
 
 
@@ -75,14 +77,14 @@ def protect_firmware(infile, outfile, version, message): #Big Function - encypts
     lengthfirm = len(firmware) 
     
     #getting all the keys
-    aeskey = get_key(seed, (version*122)%10240)
-    firmkey = get_key(seed, (lengthfirm*24)%10240)
-    metakey = get_key(seed, lengthfirm % version)
+    aeskey = get_key(seed, 16)
+    firmkey = get_key(seed, 32)
+    metakey = get_key(seed, 48)
     print("seed",seed)
     print("py meta key",metakey)
     print("firm length",lengthfirm)
     print("version",version)
-    print("startval aes/firm/meta",(version*122)%10240, "++",(lengthfirm*24)%10240, "++", lengthfirm % version)
+    print("startval aes/firm/meta",(version*122)%10240, "++",(lengthfirm*24)%10240, "++", (version*148)%lengthfirm)
     
     
 

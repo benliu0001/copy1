@@ -38,8 +38,6 @@ long program_flash(uint32_t, unsigned char*, unsigned int);
 #define BOOT ((unsigned char)'B')
 
 
-
-
 // Firmware v2 is embedded in bootloader
 extern int _binary_firmware_bin_start;
 extern int _binary_firmware_bin_size;
@@ -120,10 +118,10 @@ void load_initial_firmware(void) {
 }
 
 
-
 void get_current_key(char* seed, char* key, int startval){
     //Attempting to put in stream cipher (using aeskey) 
     //all variables should be compariable to the python stream cipher (just no seperate functions)
+    uart_write_str(UART2, "boot: In get_current_key func for:");
     int i;
     int K;
     char streamkey[16];
@@ -135,14 +133,22 @@ void get_current_key(char* seed, char* key, int startval){
     int temp;
     for (i=0; i<256; i++){
         j = (j + S_array[i] + seed[i % 16]) % 256; //16 is key_length
+        uart_write_str(UART2, "\nafter j val\n");
+        uart_write_hex(UART2, j);
         temp = S_array[i]; //swap values
         S_array[j] = S_array[i];
-        S_array[i] = temp;
+        S_array[j] = temp;
+    }
+    uart_write_str(UART2, "\nS array in boot: \n");
+    for (i=0; i<256; i++){
+        uart_write_hex(UART2, S_array[i]);
     }
   
     int n;
     i=0;
     j=0;
+    char trash[48];
+    
     for (n=0; n<startval; n++){ //run until you get to the start value def in protect tool
         i = (i + 1) % 256;
         j = (j + S_array[i]) % 256;
@@ -150,6 +156,14 @@ void get_current_key(char* seed, char* key, int startval){
         S_array[j] = S_array[i];
         S_array[i] = temp;
         K = S_array[(S_array[i] + S_array[j]) % 256];
+        trash[n] = K;
+    }
+    uart_write_str(UART2, "\nThis is the trashed stuff: \n");
+    for (n=0; n<48; n++){
+        uart_write_hex(UART2, trash[n]);
+    }
+    for (n=0; n<48; n++){
+        trash[n]=0;
     }
     for (n=0; n<16; n++){  //runing to get the actual key value
         i = (i + 1) % 256;
@@ -185,7 +199,7 @@ void load_firmware(void)
       char comparemeta[32];
       char comparehmac[32];
       char iv[16];
-      char aeskey[16];
+      char aeskey[16]; 
       char firmkey[16];
       char metakey[16];
       char seed[16] = SEED;
@@ -208,19 +222,22 @@ void load_firmware(void)
       
     
       //get all the keys
-      get_current_key(seed, aeskey, (version*122)%10240);
-      get_current_key(seed, firmkey, (size*24)%10240);
-      get_current_key(seed, metakey, (size % version));
-      uart_write_str(UART2, "Meta key: ");
+      uart_write_str(UART2, "\ngoing to aeskey func\n");
+      get_current_key(seed, aeskey, 16);
+      uart_write_str(UART2, "\ngoing to firmkey func\n");
+      get_current_key(seed, firmkey, 32);
+      uart_write_str(UART2, "\ngoing to metakey func\n");
+      get_current_key(seed, metakey, 48);
+      uart_write_str(UART2, "\nboot: Meta key: \n");
       for (i=0;i<16;i++){
           uart_write_hex(UART2, metakey[i]);
       }
-      uart_write_str(UART2, "Seed: ");
+      uart_write_str(UART2, "\nboot: Seed: \n");
       for (i=0;i<16;i++){
           uart_write_hex(UART2,seed[i]);
       }
-      uart_write_str(UART2, "startval meta: ");
-      uart_write_hex(UART2, (size % version));
+      uart_write_str(UART2, "\nboot- startval for meta: \n");
+      uart_write_str(UART2, "stops here??");
       
     
       // Initiate context structs for GCM
@@ -280,11 +297,6 @@ void load_firmware(void)
 
       // Compare to old version and abort if older (note special case for version 0).
       uint16_t old_version = *fw_version_address;
-      
-    
-    
-
-    
     
       // Creates metadata number
       
@@ -320,11 +332,9 @@ void load_firmware(void)
       // Create 32 bit word for flash programming, version is at lower address, size is at higher address
       program_flash(METADATA_BASE, (uint8_t*)(&metadata), 4);
       fw_release_message_address = (uint8_t *) (FW_BASE + size);
+      uart_write_str(UART2, "uart - about to write an ok mess");
       uart_write(UART1, OK); // Acknowledge the metadata.
       
-      
-    
-    
       /* Loop here until you can get all your characters and stuff */
       while (1) {
           
@@ -415,7 +425,8 @@ void load_firmware(void)
       }
           
     uart_write(UART1, OK); // Acknowledge the frame.
-  } // while(1)
+  } // end while(1)
+
   // Compare the HMAC    
   br_hmac_update(&hmc, (char *)FW_BASE, firmware_length);
   br_hmac_out(&hmc, comparehmac);
