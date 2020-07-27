@@ -187,7 +187,7 @@ void load_firmware(void)
       aad_length = 4;
       char hmac[32];
       char metamac[32];
-      int randomcounter = 0;
+      int pagecounter = 0;
       int erasingadd = 0;
       char comparemeta[32];
       char comparehmac[32];
@@ -324,7 +324,7 @@ void load_firmware(void)
       while (1) {
           
         //Counts the amount of pages flashed 
-        randomcounter++;
+        pagecounter++;
           
         // Read the nonce.
         for(i = 0; i < 16; i++){   
@@ -367,7 +367,7 @@ void load_firmware(void)
       if(!br_gcm_check_tag(&gcmc, tag)) {
       erasingadd = 0x10000;
       uart_write_str(UART2, "Authentication failed");
-      for(i = 0; i < randomcounter; i++){
+      for(i = 0; i < pagecounter; i++){
           uart_write_str(UART2, "Deleting page: ");
           uart_write_hex(UART2, i + 1);
           uart_write_str(UART2, "...\n");
@@ -420,7 +420,7 @@ void load_firmware(void)
   for(i = 0; i < 32; i++){
       if(comparehmac[i]!=hmac[i]){
           erasingadd = 0x10000;
-          for(i = 0; i < randomcounter; i++){
+          for(i = 0; i < pagecounter; i++){
           uart_write_str(UART2, "Deleting page: ");
           uart_write_hex(UART2, i + 1);
           uart_write_str(UART2, "...\n");
