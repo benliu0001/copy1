@@ -64,9 +64,10 @@ include ./makedefs
 
 CFLAGS+=-g
 #this is passing the keys through the make file??
-CFLAGS+=-D AESKEY=${AESKEY}
-CFLAGS+=-D FIRMKEY=${FIRMKEY}
-CFLAGS+=-D METAKEY=${METAKEY}
+CFLAGS+=-D SEED=${SEED}
+#CFLAGS+=-D AESKEY=${AESKEY}
+#CFLAGS+=-D FIRMKEY=${FIRMKEY}
+#CFLAGS+=-D METAKEY=${METAKEY}
 
 #
 # Where to find header files that do not live in this directory.

@@ -1,42 +1,78 @@
 # design-challenge-error-404-brain-not-found
-design-challenge-error-404-brain-not-found created by GitHub Classroom
 
-This is a readme file. Read me!
-
-We need to do more in-depth stuff
-
-jakes advice: I would give an overview of the protocol used in your design, and any details you want on the bootloader code, such as when/how data is written to flash, how you do version checking, etc. You can put more detail/explanation of how things work in your source code with comments and good variable names. And if there's any diagrams you think don't make sense to put in the readme (or are too large), you can make a separate document for them. -give the reader a pretty good understanding of your protocol and how data is encrypted,authenticated, and integrity checked
-
-xqcL
-
-bl_build: 
-  - Create a seed for the key stream cipher
-  - Store this seed with the rest of the code for the bootloader, as well as in the secret_build_output.txt file. 
+## bl_build.py: 
+  - Creates a seed for the key stream cipher
+  - Stores this seed with the rest of the code for the bootloader, as well as in the secret_build_output.txt file. 
   - The bootloader generates a main.bin file which has contents of flash memory
 
-fw_protect:
-  - Use GCM to encrypt and add a data signature to the Firmware and packages the metadata. 
-    - an HMAC of the metadata will be packaged with the metadata
-  - It will use a key generated from the seed stored in the secret_build_output.txt file and a key number to determine which part of the stream cipher to use. 
-  - The metadata will include the key number that will eventually specify to the bootloader which evolution of the stream cipher to use as a key. 
-  - The metadata will also include the IV that is used to start encrypting the data (random IV).
-  - We break the firmware into smaller frames and protect them individually.
-    -We are HMAC'ing the entire firmware which will then be verified in the bootloader
+## fw_protect.py:
+  - Reads in infile, outfile, version number, and release message
+  
+    ```python fw_protect --infile --outfile --version --message```
+  ### Variables:
+   - infile (Specifies file to protect)
+   - outfile (Specifies file to write to)
+   - message (Uses as release message)
+   - version (Specifies firmware version number)
+    
+  ### Protocol:
+   1. Combines release message and firmware while adding a nullbyte as a terminator
+   2. Generates key from stream cipher
+   3. Creates METADATA(version, size, and HMACS)
+   4. Creates an HMAC of the firmware and one of the Version and Size using two different keys and adds to METADATA
+   5. Breaks the firmware into frames with the first 16 bytes being IV, next 2 being size, at most 1kb of cipher text, and the tag as the last 16
+   6. Writes METADATA and framed firmware with release message to outdata
 
-fw_update:
-  - Using the data package bundled by the protect tool, communicate with the bootloader to upload the firmware package to the bootloader. 
-   - Protocol:
-    - Handshake (update tool sends U, bootloader sends a U back)
-    - Update tool sends over the metadata package (in frames if necessary)
-    - Update tool then creates frames (using a piece of the data package and the size of that frame) and sends it to the bootloader sequentially, checking for an ok message each time. 
-    - Send a black frame to indicate it is done sending frames
+## fw_update.py:
+  - Sends the data from the infile to the bootloader
+  
+    ```python fw_update --port --firmware [--debug]```
+  ### Variables:
+   - port (Port to write to)
+   - firmware (Chooses file to install)
+   - [debug] (Turns on debug mode)
+   
+  ### Protocol:
+   1. Handshake (update tool sends U, bootloader sends a U back)
+   2. Update tool sends over the metadata package (in frames if necessary)
+   4. Waits for "OK" byte before sending next frame
+   5. Send a black frame to indicate it is done sending frames
+   
+   **_NOTE:_**    If debug is turned on extra data is printed to screen
 
-bootloader:
-  - we verify and decrypt all our cryptographic primitives in the bootloader
-  - Read in the metadata, store it on SRAM 
-  - Save incoming firmware on SRAM before loading firmware so you can check the authenticity of the firmware. 
-  - Produce the correct key using the key number on the metadata and the stream cipher with the seed key. 
-  - Decrypt the data using the correct key.
-  - Authenticate the authentication tag and check the version number.
-  - If everything checks out, move firmware to the location of the running firmware in FLASH (main.bin)
-  - If there is an error, delete firmware, and make the update tool wait 1 second.
+## bootloader.c:
+  - Loads or boots firmware
+  - Rejects older versions or invalid firmware
+  - Generates key with stream cipher
+  - Prints to UART2
+  ### Protocol:
+   - Waits for byte to specify mode: "U" for update; "B" for boot
+   - 0x20 to UART0 resets device
+   #### Update mode:
+   1. Reads METADATA from update tool
+   2. Creates key with stream cipher
+   3. Verifies METADATA HMAC
+   4. If correct, writes METADATA to address 0xFC00
+   5. Reads each frame of firmware
+   6. Uses provided IV to decrypt data
+   7. Flashes to storage in pages starting at address 0x1000
+   8. Verifies firmware HMAC
+   9. If wrong, erases firmware
+   1. Sends "OK" to indicate end of update
+   #### Boot mode:
+   1. Prints release message
+   2. Boots firmware
+   
+## Using the bootloader
+   1. Navigate to /firmware/firmware and run ```make```
+   2. Navigate to /tools and run ```python bl_build.py``` to compile the bootloader
+   3. Run ```python bl_emulate.py``` to run the bootloader
+   4. Open a UART with ```miniterm /embsec/UARTX``` where X is the UART number
+## Using the firmware tools
+   1. Navigate to /tools and run the fw_protect.py tool to protect the firmware
+   2. Run the fw_update.py tool to attempt to update the booloader
+   
+   **_NOTE:_**    bl_emulate must be running before attempting to update the bootloader
+   
+   
+![alt text](https://github.com/meghaic03/design-challenge-error-404-brain-not-found/blob/master/unknown.png?raw=true)
