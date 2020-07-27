@@ -65,7 +65,7 @@
    1. Navigate to /firmware/firmware and run ```make```
    2. Navigate to /tools and run ```python bl_build``` to compile the bootloader
    3. Run ```python bl_emulate``` to run the bootloader
-   4. Open a UART with ```miniterm /embsec/UARTX where X is the UART number
+   4. Open a UART with ```miniterm /embsec/UARTX``` where X is the UART number
 ## Using the firmware tools
    1. Navigate to /tools and run the fw_protect tool to protect the firmware
    2. Run the fw_update tool to attempt to update the booloader
