@@ -69,7 +69,6 @@ def protect_firmware(infile, outfile, version, message): #Big Function - encypts
         c = struct.unpack('H', sbo.read(2))[0]
         d = struct.unpack('H', sbo.read(2))[0]
         e = struct.unpack('H', sbo.read(2))[0]
-        print('hiasdf')
 #         aeskey = sbo.read(16)    - - this is for no stream cipher
 #         firmkey = sbo.read(16)
 #         metakey = sbo.read(16)
@@ -78,18 +77,13 @@ def protect_firmware(infile, outfile, version, message): #Big Function - encypts
     # Load firmware binary from infile
     with open(infile, 'rb') as fp:
         firmware = fp.read()
-        print('fadsfahi')
     firmware_and_message = firmware + message.encode() + b'\x00'
     lengthfirm = len(firmware) 
     
     #getting all the keys
-    print('uo')
     aeskey = get_key(seed, (version*lengthfirm*a)%b)
-    print('sry')
     firmkey = get_key(seed, (lengthfirm*lengthfirm)%c)
-    print('fadsfahi')
     metakey = get_key(seed, (version*d)%(lengthfirm%e))
-    print('fadsfahi')
     
     hmac = get_HMAC(firmware, firmkey)
     metahmac = get_HMAC(struct.pack('<HH', version, lengthfirm), metakey)

@@ -212,7 +212,7 @@ void load_firmware(void)
       //V 1.4 HMACs work, but when HMAC fails no significant deletion of the firmware happens
       //V 1.4.1 Added extra keys
       //V 2.0 Added HAMCS, fixed erease, added multiple keys, cleaned print statements; working on stream cipher generation and will add comments and fixing indentations
-      
+      //V 3.0 Added hidden variables for stream cipher
     
     
     
