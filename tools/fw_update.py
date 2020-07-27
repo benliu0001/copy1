@@ -45,7 +45,7 @@ def send_metadata(ser, metadata, debug=False):
         print(metadata)
 
     ser.write(metadata)
-    #ser.write(hmac) #writes the hmac. We need to change the function to be able to pass in an 'hmac' parameter
+
     # Wait for an OK from the bootloader.
     resp = ser.read()
     if resp != RESP_OK:
@@ -77,8 +77,8 @@ def main(ser, infile, debug):
 
     metadata = firmware_blob[:68]
     #figure out how long hmac is
-    #hmac = firmware_blob[4:36]
-    firmware = firmware_blob[68:] #new line after HMAC is implemented: firmware = firmware_blob[36:]
+
+    firmware = firmware_blob[68:] 
     print(metadata)
     
     send_metadata(ser, metadata, debug=debug)
