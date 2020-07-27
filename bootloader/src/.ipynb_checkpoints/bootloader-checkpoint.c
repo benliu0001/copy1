@@ -117,14 +117,12 @@ void load_initial_firmware(void) {
   program_flash(FW_BASE + (i * FLASH_PAGESIZE), ((unsigned char *) data) + (i * FLASH_PAGESIZE), size % FLASH_PAGESIZE);
 }
 
-
-void get_current_key(char* seed, char* key, int startval){
+//COULDNT GET THE FUNCTION TO RETURN AN ARRAY
+int *get_current_key(char* seed, char key[16], int startval){
     //Attempting to put in stream cipher (using aeskey) 
     //all variables should be compariable to the python stream cipher (just no seperate functions)
-    uart_write_str(UART2, "boot: In get_current_key func for:");
     int i;
     int K;
-    char streamkey[16];
     char S_array[256];
     for (i=0; i<256; i++){ //fills S_array in with values 0-255??
         S_array[i] = i;
@@ -133,48 +131,38 @@ void get_current_key(char* seed, char* key, int startval){
     int temp;
     for (i=0; i<256; i++){
         j = (j + S_array[i] + seed[i % 16]) % 256; //16 is key_length
-        uart_write_str(UART2, "\nafter j val\n");
-        uart_write_hex(UART2, j);
         temp = S_array[i]; //swap values
-        S_array[j] = S_array[i];
+        S_array[i] = S_array[j];
         S_array[j] = temp;
     }
-    uart_write_str(UART2, "\nS array in boot: \n");
-    for (i=0; i<256; i++){
-        uart_write_hex(UART2, S_array[i]);
+    char streamkey[16];
+    for (i=0;i<16;i++){
+        streamkey[i]=0;
     }
-  
     int n;
     i=0;
     j=0;
-    char trash[48];
     
     for (n=0; n<startval; n++){ //run until you get to the start value def in protect tool
         i = (i + 1) % 256;
         j = (j + S_array[i]) % 256;
         temp = S_array[i]; //swap values
-        S_array[j] = S_array[i];
-        S_array[i] = temp;
+        S_array[i] = S_array[j];
+        S_array[j] = temp;
         K = S_array[(S_array[i] + S_array[j]) % 256];
-        trash[n] = K;
-    }
-    uart_write_str(UART2, "\nThis is the trashed stuff: \n");
-    for (n=0; n<48; n++){
-        uart_write_hex(UART2, trash[n]);
-    }
-    for (n=0; n<48; n++){
-        trash[n]=0;
     }
     for (n=0; n<16; n++){  //runing to get the actual key value
         i = (i + 1) % 256;
         j = (j + S_array[i]) % 256;
         temp = S_array[i]; //swap values
-        S_array[j] = S_array[i];
-        S_array[i] = temp;
+        S_array[i] = S_array[j];
+        S_array[j] = temp;
         K = S_array[(S_array[i] + S_array[j]) % 256];
         streamkey[n] = K;
     }
-    key = streamkey; 
+    for (n=0; n<16;n++){
+        key[n]=streamkey[n];
+    }
     
 }
 
@@ -219,26 +207,23 @@ void load_firmware(void)
       //V 1.4 HMACs work, but when HMAC fails no significant deletion of the firmware happens
       //V 1.4.1 Added extra keys
       //V 2.0 Added HAMCS, fixed erease, added multiple keys, cleaned print statements; working on stream cipher generation and will add comments and fixing indentations
-      
-    
+   
       //get all the keys
-      uart_write_str(UART2, "\ngoing to aeskey func\n");
       get_current_key(seed, aeskey, 16);
-      uart_write_str(UART2, "\ngoing to firmkey func\n");
       get_current_key(seed, firmkey, 32);
-      uart_write_str(UART2, "\ngoing to metakey func\n");
       get_current_key(seed, metakey, 48);
-      uart_write_str(UART2, "\nboot: Meta key: \n");
-      for (i=0;i<16;i++){
-          uart_write_hex(UART2, metakey[i]);
-      }
-      uart_write_str(UART2, "\nboot: Seed: \n");
-      for (i=0;i<16;i++){
-          uart_write_hex(UART2,seed[i]);
-      }
-      uart_write_str(UART2, "\nboot- startval for meta: \n");
-      uart_write_str(UART2, "stops here??");
-      
+      //testing shit
+      uart_write_str(UART2, "\n version: ");
+      uart_write_hex(UART2, version);
+      int test1 = (version*size);
+      uart_write_str(UART2, "\n Test 1: ");
+      uart_write_hex(UART2, test1);
+//       uart_write_str(UART2, "\n Test 1: ");
+//       uart_write_hex(UART2, (version*size*37)%8735;
+//       uart_write_str(UART2, "\n Test 2: ");
+//       uart_write_hex(UART2, (size*size)%10276);
+//       uart_write_str(UART2, "\n Test 3: ");
+//       uart_write_hex(UART2, (version*43892)%(size%48202));
     
       // Initiate context structs for GCM
       br_aes_ct_ctr_keys ctrc;
@@ -267,7 +252,7 @@ void load_firmware(void)
       rcv = uart_read(UART1, BLOCKING, &read);
       version |= (uint32_t)rcv << 8;
 
-      uart_write_str(UART2, "Received Firmware Version: ");
+      uart_write_str(UART2, "\nReceived Firmware Version: ");
       uart_write_hex(UART2, version);
       nl(UART2);
 
@@ -306,6 +291,7 @@ void load_firmware(void)
       br_hmac_update(&hmetac, &metadata, 4);
       br_hmac_out(&hmetac, comparemeta);
     
+
       //  Compare the HMACs
       for(i = 0; i < 32; i++){
       if(comparemeta[i]!=metamac[i]){
@@ -332,7 +318,6 @@ void load_firmware(void)
       // Create 32 bit word for flash programming, version is at lower address, size is at higher address
       program_flash(METADATA_BASE, (uint8_t*)(&metadata), 4);
       fw_release_message_address = (uint8_t *) (FW_BASE + size);
-      uart_write_str(UART2, "uart - about to write an ok mess");
       uart_write(UART1, OK); // Acknowledge the metadata.
       
       /* Loop here until you can get all your characters and stuff */
