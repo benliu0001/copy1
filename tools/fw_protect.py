@@ -15,7 +15,7 @@ def get_HMAC(data, key1):
     h = HMAC.new(secret, digestmod=SHA256)
     h.update(data)
     return h.digest()
-    #make sure it works on the bootloader side
+    #this function returns an hmac in the form of a bytearray
 
 
 
