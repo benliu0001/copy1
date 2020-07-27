@@ -78,10 +78,6 @@ def protect_firmware(infile, outfile, version, message): #Big Function - encypts
     aeskey = get_key(seed, (version*lengthfirm*37)%8735)
     firmkey = get_key(seed, (lengthfirm*lengthfirm)%10276)
     metakey = get_key(seed, (version*43892)%(lengthfirm%48202))
-    print("test1",version*lengthfirm)
-    print("test 1 aes",(version*lengthfirm*37)%8735)
-    print("test 2 firm",(lengthfirm*lengthfirm)%10276)
-    print("test 3 meta",(version*43892)%(lengthfirm%48202))
     
     
     hmac = get_HMAC(firmware, firmkey)
