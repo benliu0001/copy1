@@ -207,7 +207,34 @@ void load_firmware(void)
       //V 1.4 HMACs work, but when HMAC fails no significant deletion of the firmware happens
       //V 1.4.1 Added extra keys
       //V 2.0 Added HAMCS, fixed erease, added multiple keys, cleaned print statements; working on stream cipher generation and will add comments and fixing indentations
-   
+      
+    
+    
+    
+    
+      // Get version.
+      rcv = uart_read(UART1, BLOCKING, &read);
+      version = (uint32_t)rcv;
+      rcv = uart_read(UART1, BLOCKING, &read);
+      version |= (uint32_t)rcv << 8;
+
+      uart_write_str(UART2, "\nReceived Firmware Version: ");
+      uart_write_hex(UART2, version);
+      nl(UART2);
+
+      // Get size.
+      rcv = uart_read(UART1, BLOCKING, &read);
+      size = (uint32_t)rcv;
+      rcv = uart_read(UART1, BLOCKING, &read);
+      size |= (uint32_t)rcv << 8;
+    
+      firmware_length = (size_t) size;
+
+      uart_write_str(UART2, "Received Firmware Size: ");
+      uart_write_hex(UART2, size);
+      nl(UART2);
+    
+    
       //get all the keys
       get_current_key(seed, aeskey, 16);
       get_current_key(seed, firmkey, 32);
@@ -218,12 +245,12 @@ void load_firmware(void)
       int test1 = (version*size);
       uart_write_str(UART2, "\n Test 1: ");
       uart_write_hex(UART2, test1);
-//       uart_write_str(UART2, "\n Test 1: ");
-//       uart_write_hex(UART2, (version*size*37)%8735;
-//       uart_write_str(UART2, "\n Test 2: ");
-//       uart_write_hex(UART2, (size*size)%10276);
-//       uart_write_str(UART2, "\n Test 3: ");
-//       uart_write_hex(UART2, (version*43892)%(size%48202));
+      uart_write_str(UART2, "\n Test 1: ");
+      uart_write_hex(UART2, (version*size*37)%8735;
+      uart_write_str(UART2, "\n Test 2: ");
+      uart_write_hex(UART2, (size*size)%10276);
+      uart_write_str(UART2, "\n Test 3: ");
+      uart_write_hex(UART2, (version*43892)%(size%48202));
     
       // Initiate context structs for GCM
       br_aes_ct_ctr_keys ctrc;
@@ -246,27 +273,27 @@ void load_firmware(void)
       br_gcm_init(&gcmc, &ctrc.vtable, br_ghash_ctmul32);
     
 
-      // Get version.
-      rcv = uart_read(UART1, BLOCKING, &read);
-      version = (uint32_t)rcv;
-      rcv = uart_read(UART1, BLOCKING, &read);
-      version |= (uint32_t)rcv << 8;
+//       // Get version.
+//       rcv = uart_read(UART1, BLOCKING, &read);
+//       version = (uint32_t)rcv;
+//       rcv = uart_read(UART1, BLOCKING, &read);
+//       version |= (uint32_t)rcv << 8;
 
-      uart_write_str(UART2, "\nReceived Firmware Version: ");
-      uart_write_hex(UART2, version);
-      nl(UART2);
+//       uart_write_str(UART2, "\nReceived Firmware Version: ");
+//       uart_write_hex(UART2, version);
+//       nl(UART2);
 
-      // Get size.
-      rcv = uart_read(UART1, BLOCKING, &read);
-      size = (uint32_t)rcv;
-      rcv = uart_read(UART1, BLOCKING, &read);
-      size |= (uint32_t)rcv << 8;
+//       // Get size.
+//       rcv = uart_read(UART1, BLOCKING, &read);
+//       size = (uint32_t)rcv;
+//       rcv = uart_read(UART1, BLOCKING, &read);
+//       size |= (uint32_t)rcv << 8;
     
-      firmware_length = (size_t) size;
+//       firmware_length = (size_t) size;
 
-      uart_write_str(UART2, "Received Firmware Size: ");
-      uart_write_hex(UART2, size);
-      nl(UART2);
+//       uart_write_str(UART2, "Received Firmware Size: ");
+//       uart_write_hex(UART2, size);
+//       nl(UART2);
 
          
       //Get HMAC
