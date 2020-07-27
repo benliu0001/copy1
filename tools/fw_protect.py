@@ -32,17 +32,8 @@ def protect_firmware(infile, outfile, version, message):
         c = struct.unpack('H', sbo.read(2))[0]
         d = struct.unpack('H', sbo.read(2))[0]
         e = struct.unpack('H', sbo.read(2))[0]
-#         aeskey = sbo.read(16)    - - this is for no stream cipher
-#         firmkey = sbo.read(16)
-#         metakey = sbo.read(16)
-
         #if we were to have a seed, would happen here??
-    print(aeskey)
-    print(len(aeskey))
-    print(firmkey)
-    print(len(firmkey))
-    print(metakey)
-    print(len(metakey))
+
     # Load firmware binary from infile
     with open(infile, 'rb') as fp:
         firmware = fp.read()
