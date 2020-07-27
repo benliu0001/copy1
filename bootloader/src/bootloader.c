@@ -176,12 +176,12 @@ void load_firmware(void)
       int frame_length = 0;
       int read = 0;
       int i;
-      int a = a;
-      int b = b;
-      int c = c;
-      int d = d;
-      int e = e;
-      uint32_t rcv = 0;
+      int hi = AB;
+      int there = BB;
+      int nice = CB;
+      int try = DB;
+      int buddy = EB;
+      uint16_t rcv = 0;
       char tag[16];
       size_t data_length, aad_length;
       aad_length = 4;
@@ -241,9 +241,9 @@ void load_firmware(void)
     
     
       //get all the keys
-      get_current_key(seed, aeskey, (version*size*a)%b);
-      get_current_key(seed, firmkey, (size*size)%c);
-      get_current_key(seed, metakey, (version*d)%(size%e));
+      get_current_key(seed, aeskey, (version*size*hi)%there);
+      get_current_key(seed, firmkey, (size*size)%nice);
+      get_current_key(seed, metakey, (version*try)%(size%buddy));
     
       // Initiate context structs for GCM
       br_aes_ct_ctr_keys ctrc;

@@ -63,6 +63,13 @@ def protect_firmware(infile, outfile, version, message): #Big Function - encypts
     #Load key from secret_build_output.txt
     with open('secret_build_output.txt', 'rb') as sbo:
         seed = sbo.read(16)
+        a = struct.unpack('i', sbo.read(4))[0]
+        print('hi')
+        b = struct.unpack('i', sbo.read(4))[0]
+        c = struct.unpack('i', sbo.read(4))[0]
+        d = struct.unpack('i', sbo.read(4))[0]
+        e = struct.unpack('i', sbo.read(4))[0]
+        print('hiasdf')
 #         aeskey = sbo.read(16)    - - this is for no stream cipher
 #         firmkey = sbo.read(16)
 #         metakey = sbo.read(16)
@@ -71,14 +78,18 @@ def protect_firmware(infile, outfile, version, message): #Big Function - encypts
     # Load firmware binary from infile
     with open(infile, 'rb') as fp:
         firmware = fp.read()
+        print('fadsfahi')
     firmware_and_message = firmware + message.encode() + b'\x00'
     lengthfirm = len(firmware) 
     
     #getting all the keys
-    aeskey = get_key(seed, (version*lengthfirm*37)%8735)
-    firmkey = get_key(seed, (lengthfirm*lengthfirm)%10276)
-    metakey = get_key(seed, (version*43892)%(lengthfirm%48202))
-    
+    print('uo')
+    aeskey = get_key(seed, (version*lengthfirm*a)%b)
+    print('sry')
+    firmkey = get_key(seed, (lengthfirm*lengthfirm)%c)
+    print('fadsfahi')
+    metakey = get_key(seed, (version*d)%(lengthfirm%e))
+    print('fadsfahi')
     
     hmac = get_HMAC(firmware, firmkey)
     metahmac = get_HMAC(struct.pack('<HH', version, lengthfirm), metakey)

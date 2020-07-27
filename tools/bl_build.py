@@ -13,18 +13,18 @@ import subprocess
 import random
 import string
 import Crypto.Random
-
+import struct
 FILE_DIR = pathlib.Path(__file__).parent.absolute()
 
 fp = open("secret_build_output.txt", "wb").close()
 
 fp = open("secret_build_output.txt", "ab") #make secret_build_output.txt file, w means create if doesn't exist already
 seed = Crypto.Random.get_random_bytes(16)
-a = Crypto.Random.get_random_bytes(16)
-b = Crypto.Random.get_random_bytes(16)
-c = Crypto.Random.get_random_bytes(16)
-d = Crypto.Random.get_random_bytes(16)
-e = Crypto.Random.get_random_bytes(16)
+A = Crypto.Random.get_random_bytes(4)
+B = Crypto.Random.get_random_bytes(4)
+C = Crypto.Random.get_random_bytes(4)
+D = Crypto.Random.get_random_bytes(4)
+E = Crypto.Random.get_random_bytes(4)
 ##KEYS FOR NO STREAM CIPHER
 #Key for AES
 # aeskey = Crypto.Random.get_random_bytes(16) #creates a random key of letters and numbers, 16 characters (16 bytes)
@@ -35,16 +35,18 @@ e = Crypto.Random.get_random_bytes(16)
 # fp.write(firmkey)
 # fp.write(metakey)
 fp.write(seed)
-fp.write(a)
-fp.write(b)
-fp.write(c)
-fp.write(d)
-fp.write(e)
+fp.write(A)
+fp.write(B)
+fp.write(C)
+fp.write(D)
+fp.write(E)
 fp.close() #close fp (secret_build_output.txt file)
 
 def to_c_array(binary_string):
     return "{" + ",".join([hex(c) for c in binary_string]) + "}"
-
+def to_c_long(long):
+    number = struct.unpack('i', long)[0]
+    return "{" + f"{number}" + "}"
 def copy_initial_firmware(binary_path):
     """
     Copy the initial firmware binary to the bootloader build directory
@@ -71,8 +73,7 @@ def make_bootloader():
     subprocess.call('make clean', shell=True)
 #     if no stream cipher
 #     status = subprocess.call(f'make AESKEY={to_c_array(aeskey)} FIRMKEY={to_c_array(firmkey)} METAKEY={to_c_array(metakey)}', shell=True)
-    status = subprocess.call(f'make SEED={to_c_array(seed)} a={to_c_array(a)} b={to_c_array(b)} c={to_c_array(c)} d={to_c_array(d)} e={to_c_array(e)}', shell=True)
-
+    status = subprocess.call(f'make SEED={to_c_array(seed)} AB={to_c_long(A)} BB={to_c_long(B)} CB={to_c_long(C)} DB={to_c_long(D)} EB={to_c_long(E)}', shell=True)
     # Return True if make returned 0, otherwise return False.
     return (status == 0)
 

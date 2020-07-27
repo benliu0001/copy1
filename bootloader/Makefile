@@ -65,11 +65,11 @@ include ./makedefs
 CFLAGS+=-g
 #this is passing the keys through the make file??
 CFLAGS+=-D SEED=${SEED}
-#CFLAGS+=-D a=${a}
-#CFLAGS+=-D b=${b}
-#CFLAGS+=-D c=${c}
-#CFLAGS+=-D d=${d}
-#CFLAGS+=-D e=${e}
+CFLAGS+=-D AB=${AB}
+CFLAGS+=-D BB=${BB}
+CFLAGS+=-D CB=${CB}
+CFLAGS+=-D DB=${DB}
+CFLAGS+=-D EB=${EB}
 
 #
 # Where to find header files that do not live in this directory.
