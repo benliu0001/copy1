@@ -75,20 +75,14 @@ def main(ser, infile, debug):
         firmware_blob = fp.read()
 
 
-    metadata = firmware_blob[:68]
-    #figure out how long hmac is
-    #hmac = firmware_blob[4:36]
-    firmware = firmware_blob[68:] #new line after HMAC is implemented: firmware = firmware_blob[36:]
+    metadata = firmware_blob[:68] # Grabs metadata
+ 
+    firmware = firmware_blob[68:] # Splits out Firmware+Releasemessage
     
     send_metadata(ser, metadata, debug=debug)
     for idx, frame_start in enumerate(range(0, len(firmware), 1058)):
-        data = firmware[frame_start: frame_start + 1058]
-        # Get length of data.
-     #   length = len(data)
-      #  frame_fmt = '>H{}s'.format(length)
+        data = firmware[frame_start: frame_start + 1058] # Grab Frame
 
-        # Construct frame.
-   #     frame = struct.pack(frame_fmt, length, data)
         if debug:
             print("Writing frame {} ({} bytes)...".format(idx, len(data)))
             
