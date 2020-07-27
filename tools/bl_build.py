@@ -16,24 +16,18 @@ import Crypto.Random
 import struct
 FILE_DIR = pathlib.Path(__file__).parent.absolute()
 
-fp = open("secret_build_output.txt", "wb").close()
+fp = open("secret_build_output.txt", "wb").close() # Create Clean file
 
-fp = open("secret_build_output.txt", "ab") #make secret_build_output.txt file, w means create if doesn't exist already
+fp = open("secret_build_output.txt", "ab") # Append data 
+# Creates seed
 seed = Crypto.Random.get_random_bytes(16)
+# Creates numbers for stream cipher
 A = Crypto.Random.get_random_bytes(2)
 B = Crypto.Random.get_random_bytes(2)
 C = Crypto.Random.get_random_bytes(2)
 D = Crypto.Random.get_random_bytes(2)
 E = Crypto.Random.get_random_bytes(2)
-##KEYS FOR NO STREAM CIPHER
-#Key for AES
-# aeskey = Crypto.Random.get_random_bytes(16) #creates a random key of letters and numbers, 16 characters (16 bytes)
-# firmkey = Crypto.Random.get_random_bytes(16) # key for firmware hmac
-# metakey = Crypto.Random.get_random_bytes(16) # key for metadata hmac
-
-# fp.write(aeskey)  #write the key to the file
-# fp.write(firmkey)
-# fp.write(metakey)
+# Writes to file
 fp.write(seed)
 fp.write(A)
 fp.write(B)
@@ -42,10 +36,11 @@ fp.write(D)
 fp.write(E)
 fp.close() #close fp (secret_build_output.txt file)
 
-def to_c_array(binary_string):
+
+def to_c_array(binary_string):# Converts string for make file
     return "{" + ",".join([hex(c) for c in binary_string]) + "}"
-def to_c_long(long):
-    number = struct.unpack('H', long)[0]
+def to_c_long(short):# Converts number to short
+    number = struct.unpack('H', short)[0]
     return "{" + f"{number}" + "}"
 def copy_initial_firmware(binary_path):
     """
@@ -71,9 +66,7 @@ def make_bootloader():
     os.chdir(bootloader)
 
     subprocess.call('make clean', shell=True)
-#     if no stream cipher
-#     status = subprocess.call(f'make AESKEY={to_c_array(aeskey)} FIRMKEY={to_c_array(firmkey)} METAKEY={to_c_array(metakey)}', shell=True)
-    status = subprocess.call(f'make SEED={to_c_array(seed)} AB={to_c_long(A)} BB={to_c_long(B)} CB={to_c_long(C)} DB={to_c_long(D)} EB={to_c_long(E)}', shell=True)
+    status = subprocess.call(f'make SEED={to_c_array(seed)} AB={to_c_long(A)} BB={to_c_long(B)} CB={to_c_long(C)} DB={to_c_long(D)} EB={to_c_long(E)}', shell=True) # Send numbers to bootloader
     # Return True if make returned 0, otherwise return False.
     return (status == 0)
 
