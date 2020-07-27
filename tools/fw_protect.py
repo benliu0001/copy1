@@ -10,7 +10,7 @@ from Crypto.Hash import HMAC, SHA256
 import os
 from Crypto.Util.Padding import pad, unpad
 import random
-
+# Compute HMAC
 def get_HMAC(data, key1):
     secret = key1
     h = HMAC.new(secret, digestmod=SHA256)
@@ -19,7 +19,7 @@ def get_HMAC(data, key1):
     #make sure it works on the bootloader side
 
 
-#Stream cipher for key gen
+# Stream cipher for key gen
 def KSA(key): #creates an array with values 0-255 in random order (based on key)
     key_length = len(key)
     S = []# [0,1,2, ... , 255]
@@ -60,7 +60,7 @@ def get_key(key, startval): #getting the actual key to use, startval is any valu
 
 def protect_firmware(infile, outfile, version, message): #Big Function - encypts
     #1 page per 'frame'
-    #Load key from secret_build_output.txt
+    # Load key from secret_build_output.txt
     with open('secret_build_output.txt', 'rb') as sbo:
         seed = sbo.read(16)
         a = struct.unpack('H', sbo.read(2))[0]
@@ -75,11 +75,12 @@ def protect_firmware(infile, outfile, version, message): #Big Function - encypts
     firmware_and_message = firmware + message.encode() + b'\x00'
     lengthfirm = len(firmware) 
     
-    #getting all the keys
+    # Getting all the keys
     aeskey = get_key(seed, (version*lengthfirm*a)%b)
     firmkey = get_key(seed, (lengthfirm*lengthfirm)%c)
     metakey = get_key(seed, (version*d)%(lengthfirm%e))
     
+    # Create HMAC and pack into metadata
     hmac = get_HMAC(firmware, firmkey)
     metahmac = get_HMAC(struct.pack('<HH', version, lengthfirm), metakey)
     metadata = struct.pack('<HH32s32s', version, lengthfirm, hmac, metahmac)
@@ -93,14 +94,14 @@ def protect_firmware(infile, outfile, version, message): #Big Function - encypts
 
     # split into 1024 bytes and encrypting it 
     for i in range(0,len(firmware_and_message),1024):
-        whatwewant = firmware_and_message[i:i+1024]
-        frame = struct.pack('{}s'.format(len(whatwewant)), whatwewant)
+        fdata = firmware_and_message[i:i+1024]
+        frame = struct.pack('{}s'.format(len(fdata)), fdata)
         frame_encrypt = AES.new(aeskey, AES.MODE_GCM)
         frame_encrypt.update(metadata[0:4])
         ciphertext, tag = frame_encrypt.encrypt_and_digest(frame)
         nonce = frame_encrypt.nonce
         #nonce | length ciphertext | ciphertext (within has framenum then firmware/release message) | tag
-        sendoverframe = struct.pack('<16sH{}s16s'.format(len(ciphertext)), nonce, len(whatwewant), ciphertext, tag)
+        sendoverframe = struct.pack('<16sH{}s16s'.format(len(ciphertext)), nonce, len(fdata), ciphertext, tag)
 
         # Write the encrypted frame to outfile
         with open(outfile, 'ab') as fb:
