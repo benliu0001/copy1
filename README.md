@@ -77,4 +77,4 @@
    
 
 
-![alt text](https://github.com/embsec/design-challenge-error-404-brain-not-found/blob/master/unknown.png?raw=true)
+![alt text](https://github.com/embsec/design-challenge-error-404-brain-not-found/blob/master/flow_chart.png?raw=true)
