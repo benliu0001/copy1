@@ -64,7 +64,6 @@ def protect_firmware(infile, outfile, version, message): #Big Function - encypts
     with open('secret_build_output.txt', 'rb') as sbo:
         seed = sbo.read(16)
         a = struct.unpack('H', sbo.read(2))[0]
-        print(a)
         b = struct.unpack('H', sbo.read(2))[0]
         c = struct.unpack('H', sbo.read(2))[0]
         d = struct.unpack('H', sbo.read(2))[0]
