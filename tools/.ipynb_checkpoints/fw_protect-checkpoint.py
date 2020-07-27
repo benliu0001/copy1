@@ -15,6 +15,7 @@ def get_HMAC(data, key1):
     h = HMAC.new(secret, digestmod=SHA256)
     h.update(data)
     return h.digest()
+
     #make sure it works on the bootloader side
 
 
@@ -97,14 +98,15 @@ def protect_firmware(infile, outfile, version, message): #Big Function - encypts
 
     # split into 1024 bytes and encrypting it 
     for i in range(0,len(firmware_and_message),1024):
-        whatwewant = firmware_and_message[i:i+1024]
-        frame = struct.pack('{}s'.format(len(whatwewant)), whatwewant)
+
+        dataBeforeEncrypt = firmware_and_message[i:i+1024]
+        frame = struct.pack('{}s'.format(len(dataBeforeEncrypt)), dataBeforeEncrypt)
         frame_encrypt = AES.new(aeskey, AES.MODE_GCM)
         frame_encrypt.update(metadata[0:4])
         ciphertext, tag = frame_encrypt.encrypt_and_digest(frame)
         nonce = frame_encrypt.nonce
         #nonce | length ciphertext | ciphertext (within has framenum then firmware/release message) | tag
-        sendoverframe = struct.pack('<16sH{}s16s'.format(len(ciphertext)), nonce, len(whatwewant), ciphertext, tag)
+        sendoverframe = struct.pack('<16sH{}s16s'.format(len(ciphertext)), nonce, len(dataBeforeEncrypt), ciphertext, tag)
 
         # Write the encrypted frame to outfile
         with open(outfile, 'ab') as fb:
@@ -123,4 +125,8 @@ if __name__ == '__main__':
     parser.add_argument("--message", help="Release message for this firmware.", required=True)
     args = parser.parse_args()
 
+<<<<<<< HEAD
     protect_firmware(infile=args.infile, outfile=args.outfile, version=int(args.version), message=args.message)
+=======
+    protect_firmware(infile=args.infile, outfile=args.outfile, version=int(args.version), message=args.message)
+>>>>>>> 466441fb733f9a45d8d927b23765d40675d7544e
