@@ -118,7 +118,7 @@ void load_initial_firmware(void) {
 }
 
 //COULDNT GET THE FUNCTION TO RETURN AN ARRAY
-int *get_current_key(char* seed, char key[16], int startval){
+void get_current_key(char* seed, char key[16], int startval){
     //Attempting to put in stream cipher (using aeskey) 
     //all variables should be compariable to the python stream cipher (just no seperate functions)
     int i;
@@ -176,6 +176,11 @@ void load_firmware(void)
       int frame_length = 0;
       int read = 0;
       int i;
+      int a = a;
+      int b = b;
+      int c = c;
+      int d = d;
+      int e = e;
       uint32_t rcv = 0;
       char tag[16];
       size_t data_length, aad_length;
@@ -228,7 +233,7 @@ void load_firmware(void)
       rcv = uart_read(UART1, BLOCKING, &read);
       size |= (uint32_t)rcv << 8;
     
-      firmware_length = (size_t) size;
+      firmware_length = (size_t) size; // Creates size_t variable for BearSSL
 
       uart_write_str(UART2, "Received Firmware Size: ");
       uart_write_hex(UART2, size);
@@ -236,9 +241,9 @@ void load_firmware(void)
     
     
       //get all the keys
-      get_current_key(seed, aeskey, (version*size*37)%8735);
-      get_current_key(seed, firmkey, (size*size)%10276);
-      get_current_key(seed, metakey, (version*43892)%(size%48202));
+      get_current_key(seed, aeskey, (version*size*a)%b);
+      get_current_key(seed, firmkey, (size*size)%c);
+      get_current_key(seed, metakey, (version*d)%(size%e));
     
       // Initiate context structs for GCM
       br_aes_ct_ctr_keys ctrc;
@@ -260,28 +265,6 @@ void load_firmware(void)
       br_aes_ct_ctr_init(&ctrc,aeskey,key_length);
       br_gcm_init(&gcmc, &ctrc.vtable, br_ghash_ctmul32);
     
-
-//       // Get version.
-//       rcv = uart_read(UART1, BLOCKING, &read);
-//       version = (uint32_t)rcv;
-//       rcv = uart_read(UART1, BLOCKING, &read);
-//       version |= (uint32_t)rcv << 8;
-
-//       uart_write_str(UART2, "\nReceived Firmware Version: ");
-//       uart_write_hex(UART2, version);
-//       nl(UART2);
-
-//       // Get size.
-//       rcv = uart_read(UART1, BLOCKING, &read);
-//       size = (uint32_t)rcv;
-//       rcv = uart_read(UART1, BLOCKING, &read);
-//       size |= (uint32_t)rcv << 8;
-    
-//       firmware_length = (size_t) size;
-
-//       uart_write_str(UART2, "Received Firmware Size: ");
-//       uart_write_hex(UART2, size);
-//       nl(UART2);
 
          
       //Get HMAC
@@ -320,6 +303,8 @@ void load_firmware(void)
           
       uart_write_str(UART2, "\nHMAC passed\n");
       nl(UART2);
+    
+      // Test the version number
       if (version != 0 && version < old_version) {
         uart_write(UART1, ERROR); // Reject the metadata.
         SysCtlReset(); // Reset device
@@ -342,7 +327,7 @@ void load_firmware(void)
         randomcounter++;
           
         // Read the nonce.
-        for(i = 0; i < 16; i++){
+        for(i = 0; i < 16; i++){   
           iv[i] = uart_read(UART1, BLOCKING, &read);
         }
 
@@ -392,6 +377,7 @@ void load_firmware(void)
       SysCtlReset();
       return; 
       }   
+          
       // Try to write flash and check for error
       if (program_flash(page_addr, data, data_index)){
         uart_write(UART1, ERROR); // Reject the firmware
@@ -427,9 +413,10 @@ void load_firmware(void)
     uart_write(UART1, OK); // Acknowledge the frame.
   } // end while(1)
 
-  // Compare the HMAC    
+  // Compute the HMAC    
   br_hmac_update(&hmc, (char *)FW_BASE, firmware_length);
   br_hmac_out(&hmc, comparehmac);
+  // Compare the HMAC
   for(i = 0; i < 32; i++){
       if(comparehmac[i]!=hmac[i]){
           erasingadd = 0x10000;

@@ -20,6 +20,11 @@ fp = open("secret_build_output.txt", "wb").close()
 
 fp = open("secret_build_output.txt", "ab") #make secret_build_output.txt file, w means create if doesn't exist already
 seed = Crypto.Random.get_random_bytes(16)
+a = Crypto.Random.get_random_bytes(16)
+b = Crypto.Random.get_random_bytes(16)
+c = Crypto.Random.get_random_bytes(16)
+d = Crypto.Random.get_random_bytes(16)
+e = Crypto.Random.get_random_bytes(16)
 ##KEYS FOR NO STREAM CIPHER
 #Key for AES
 # aeskey = Crypto.Random.get_random_bytes(16) #creates a random key of letters and numbers, 16 characters (16 bytes)
@@ -30,6 +35,11 @@ seed = Crypto.Random.get_random_bytes(16)
 # fp.write(firmkey)
 # fp.write(metakey)
 fp.write(seed)
+fp.write(a)
+fp.write(b)
+fp.write(c)
+fp.write(d)
+fp.write(e)
 fp.close() #close fp (secret_build_output.txt file)
 
 def to_c_array(binary_string):
@@ -61,7 +71,7 @@ def make_bootloader():
     subprocess.call('make clean', shell=True)
 #     if no stream cipher
 #     status = subprocess.call(f'make AESKEY={to_c_array(aeskey)} FIRMKEY={to_c_array(firmkey)} METAKEY={to_c_array(metakey)}', shell=True)
-    status = subprocess.call(f'make SEED={to_c_array(seed)}', shell=True)
+    status = subprocess.call(f'make SEED={to_c_array(seed)} a={to_c_array(a)} b={to_c_array(b)} c={to_c_array(c)} d={to_c_array(d)} e={to_c_array(e)}', shell=True)
 
     # Return True if make returned 0, otherwise return False.
     return (status == 0)
