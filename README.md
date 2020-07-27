@@ -73,3 +73,6 @@
    2. Run the fw_update.py tool to attempt to update the booloader
    
    **_NOTE:_**    bl_emulate must be running before attempting to update the bootloader
+   
+   
+![alt text](https://github.com/meghaic03/design-challenge-error-404-brain-not-found/blob/master/unknown.png?raw=true)
