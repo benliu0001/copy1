@@ -31,6 +31,7 @@ def protect_firmware(infile, outfile, version, message):
         c = struct.unpack('H', sbo.read(2))[0]
         d = struct.unpack('H', sbo.read(2))[0]
         e = struct.unpack('H', sbo.read(2))[0]
+        # random numbers that are used in the stream cipher
 
 
     # Load firmware binary from infile
