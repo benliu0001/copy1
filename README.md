@@ -1,11 +1,11 @@
 # design-challenge-error-404-brain-not-found
 
-## bl_build: 
+## bl_build.py: 
   - Creates a seed for the key stream cipher
   - Stores this seed with the rest of the code for the bootloader, as well as in the secret_build_output.txt file. 
   - The bootloader generates a main.bin file which has contents of flash memory
 
-## fw_protect:
+## fw_protect.py:
   - Reads in infile, outfile, version number, and release message
   
   ```python fw_protect --infile --outfile --version --message```
@@ -23,7 +23,7 @@
    5. Breaks the firmware into frames with the first 16 bytes being IV, next 2 being size, at most 1kb of cipher text, and the tag as the last 16
    6. Writes METADATA and framed firmware with release message to outdata
 
-## fw_update:
+## fw_update.py:
   - Sends the data from the infile to the bootloader
   
   ```python fw_update --port --firmware [--debug]```
@@ -65,11 +65,11 @@
    
 ## Using the bootloader
    1. Navigate to /firmware/firmware and run ```make```
-   2. Navigate to /tools and run ```python bl_build``` to compile the bootloader
-   3. Run ```python bl_emulate``` to run the bootloader
+   2. Navigate to /tools and run ```python bl_build.py``` to compile the bootloader
+   3. Run ```python bl_emulate.py``` to run the bootloader
    4. Open a UART with ```miniterm /embsec/UARTX``` where X is the UART number
 ## Using the firmware tools
-   1. Navigate to /tools and run the fw_protect tool to protect the firmware
-   2. Run the fw_update tool to attempt to update the booloader
+   1. Navigate to /tools and run the fw_protect.py tool to protect the firmware
+   2. Run the fw_update.py tool to attempt to update the booloader
    
    **_NOTE:_**    bl_emulate must be running before attempting to update the bootloader
