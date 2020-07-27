@@ -63,7 +63,7 @@ def protect_firmware(infile, outfile, version, message):
     # split into 1024 bytes and encrypting it with GCM (using AES)
     for i in range(0,len(firmware_and_message),1024):
         #double check the <h1024s??
-        whatwewant = firmware_and_message[i:i+1024]
+        whatwewant = firmware_and_message[i:i+1024] # whatwewant var is the firmware release message before encoding
         frame = struct.pack('{}s'.format(len(whatwewant)), whatwewant)
         frame_encrypt = AES.new(aeskey, AES.MODE_GCM)
         frame_encrypt.update(metadata[0:4])
