@@ -118,7 +118,7 @@ void load_initial_firmware(void) {
 }
 
 //COULDNT GET THE FUNCTION TO RETURN AN ARRAY
-int *get_current_key(char* seed, char key[16], int startval){
+void *get_current_key(char* seed, char key[16], int startval){
     //Attempting to put in stream cipher (using aeskey) 
     //all variables should be compariable to the python stream cipher (just no seperate functions)
     int i;
@@ -236,9 +236,9 @@ void load_firmware(void)
     
     
       //get all the keys
-      get_current_key(seed, aeskey, (version*size*37)%8735);
-      get_current_key(seed, firmkey, (size*size)%10276);
-      get_current_key(seed, metakey, (version*43892)%(size%48202));
+      get_current_key(seed, aeskey, (version*size*A)%B);
+      get_current_key(seed, firmkey, (size*size)%C);
+      get_current_key(seed, metakey, (version*D)%(size%E));
     
       // Initiate context structs for GCM
       br_aes_ct_ctr_keys ctrc;

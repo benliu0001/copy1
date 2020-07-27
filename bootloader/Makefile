@@ -65,6 +65,11 @@ include ./makedefs
 CFLAGS+=-g
 #this is passing the keys through the make file??
 CFLAGS+=-D SEED=${SEED}
+CFLAGS+=-D A=${A}
+CFLAGS+=-D B=${B}
+CFLAGS+=-D C=${C}
+CFLAGS+=-D D=${D}
+CFLAGS+=-D E=${E}
 #CFLAGS+=-D AESKEY=${AESKEY}
 #CFLAGS+=-D FIRMKEY=${FIRMKEY}
 #CFLAGS+=-D METAKEY=${METAKEY}

@@ -20,6 +20,11 @@ fp = open("secret_build_output.txt", "wb").close()
 
 fp = open("secret_build_output.txt", "ab") #make secret_build_output.txt file, w means create if doesn't exist already
 seed = Crypto.Random.get_random_bytes(16)
+a = random.randint(0,10240)
+b = random.randint(0,10240)
+c = random.randint(0,10240)
+d = random.randint(0,10240)
+e = random.randint(0,10240)
 ##KEYS FOR NO STREAM CIPHER
 #Key for AES
 # aeskey = Crypto.Random.get_random_bytes(16) #creates a random key of letters and numbers, 16 characters (16 bytes)
@@ -61,7 +66,7 @@ def make_bootloader():
     subprocess.call('make clean', shell=True)
 #     if no stream cipher
 #     status = subprocess.call(f'make AESKEY={to_c_array(aeskey)} FIRMKEY={to_c_array(firmkey)} METAKEY={to_c_array(metakey)}', shell=True)
-    status = subprocess.call(f'make SEED={to_c_array(seed)}', shell=True)
+    status = subprocess.call(f'make SEED={to_c_array(seed)} A={(a)} B={(b)} C={(c)} D={(d)} E={(e)}', shell=True)
 
     # Return True if make returned 0, otherwise return False.
     return (status == 0)
