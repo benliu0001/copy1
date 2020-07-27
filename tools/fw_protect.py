@@ -64,7 +64,6 @@ def protect_firmware(infile, outfile, version, message): #Big Function - encypts
     with open('secret_build_output.txt', 'rb') as sbo:
         seed = sbo.read(16)
         a = struct.unpack('H', sbo.read(2))[0]
-        print(a)
         b = struct.unpack('H', sbo.read(2))[0]
         c = struct.unpack('H', sbo.read(2))[0]
         d = struct.unpack('H', sbo.read(2))[0]
@@ -125,8 +124,5 @@ if __name__ == '__main__':
     parser.add_argument("--message", help="Release message for this firmware.", required=True)
     args = parser.parse_args()
 
-<<<<<<< HEAD
+
     protect_firmware(infile=args.infile, outfile=args.outfile, version=int(args.version), message=args.message)
-=======
-    protect_firmware(infile=args.infile, outfile=args.outfile, version=int(args.version), message=args.message)
->>>>>>> 466441fb733f9a45d8d927b23765d40675d7544e
