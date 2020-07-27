@@ -92,7 +92,7 @@ def protect_firmware(infile, outfile, version, message): #Big Function - encypts
         # do we write the HMAC here as well?
     
 
-    # split into 1024 bytes and encrypting it 
+    # Split data into 1024 bytes and encrypting it 
     for i in range(0,len(firmware_and_message),1024):
         fdata = firmware_and_message[i:i+1024]
         frame = struct.pack('{}s'.format(len(fdata)), fdata)
