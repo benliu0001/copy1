@@ -176,11 +176,11 @@ void load_firmware(void)
       int frame_length = 0;
       int read = 0;
       int i;
-      int hi = AB;
-      int there = BB;
-      int nice = CB;
-      int try = DB;
-      int buddy = EB;
+      unsigned short hi = AB;
+      unsigned short there = BB;
+      unsigned short nice = CB;
+      unsigned short try = DB;
+      unsigned short buddy = EB;
       uint16_t rcv = 0;
       char tag[16];
       size_t data_length, aad_length;

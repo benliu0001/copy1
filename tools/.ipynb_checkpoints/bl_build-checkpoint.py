@@ -20,11 +20,11 @@ fp = open("secret_build_output.txt", "wb").close()
 
 fp = open("secret_build_output.txt", "ab") #make secret_build_output.txt file, w means create if doesn't exist already
 seed = Crypto.Random.get_random_bytes(16)
-A = Crypto.Random.get_random_bytes(4)
-B = Crypto.Random.get_random_bytes(4)
-C = Crypto.Random.get_random_bytes(4)
-D = Crypto.Random.get_random_bytes(4)
-E = Crypto.Random.get_random_bytes(4)
+A = Crypto.Random.get_random_bytes(2)
+B = Crypto.Random.get_random_bytes(2)
+C = Crypto.Random.get_random_bytes(2)
+D = Crypto.Random.get_random_bytes(2)
+E = Crypto.Random.get_random_bytes(2)
 ##KEYS FOR NO STREAM CIPHER
 #Key for AES
 # aeskey = Crypto.Random.get_random_bytes(16) #creates a random key of letters and numbers, 16 characters (16 bytes)
@@ -45,7 +45,7 @@ fp.close() #close fp (secret_build_output.txt file)
 def to_c_array(binary_string):
     return "{" + ",".join([hex(c) for c in binary_string]) + "}"
 def to_c_long(long):
-    number = struct.unpack('i', long)[0]
+    number = struct.unpack('h', long)[0]
     return "{" + f"{number}" + "}"
 def copy_initial_firmware(binary_path):
     """

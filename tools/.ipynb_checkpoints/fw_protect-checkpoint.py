@@ -63,12 +63,12 @@ def protect_firmware(infile, outfile, version, message): #Big Function - encypts
     #Load key from secret_build_output.txt
     with open('secret_build_output.txt', 'rb') as sbo:
         seed = sbo.read(16)
-        a = struct.unpack('i', sbo.read(4))[0]
-        print('hi')
-        b = struct.unpack('i', sbo.read(4))[0]
-        c = struct.unpack('i', sbo.read(4))[0]
-        d = struct.unpack('i', sbo.read(4))[0]
-        e = struct.unpack('i', sbo.read(4))[0]
+        a = struct.unpack('H', sbo.read(2))[0]
+        print(a)
+        b = struct.unpack('H', sbo.read(2))[0]
+        c = struct.unpack('H', sbo.read(2))[0]
+        d = struct.unpack('H', sbo.read(2))[0]
+        e = struct.unpack('H', sbo.read(2))[0]
         print('hiasdf')
 #         aeskey = sbo.read(16)    - - this is for no stream cipher
 #         firmkey = sbo.read(16)
