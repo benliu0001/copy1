@@ -7,6 +7,7 @@
 
 ## fw_protect:
   - Reads in infile, outfile, version number, and release message
+  
   -```python fw_protect --infile --outfile --version --message```
   ### Variables:
    - infile (Specifies file to protect)
@@ -24,6 +25,7 @@
 
 ## fw_update:
   - Sends the data from the infile to the bootloader
+  
   -```python fw_update --port --firmware [--debug]```
   ### Variables:
    - port (Port to write to)
