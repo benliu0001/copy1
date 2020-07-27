@@ -236,20 +236,20 @@ void load_firmware(void)
     
     
       //get all the keys
-      get_current_key(seed, aeskey, 16);
-      get_current_key(seed, firmkey, 32);
-      get_current_key(seed, metakey, 48);
+      get_current_key(seed, aeskey, (version*size*37)%8735);
+      get_current_key(seed, firmkey, (size*size)%10276);
+      get_current_key(seed, metakey, (version*43892)%(size%48202));
       //testing shit
       uart_write_str(UART2, "\n version: ");
       uart_write_hex(UART2, version);
       int test1 = (version*size);
       uart_write_str(UART2, "\n Test 1: ");
       uart_write_hex(UART2, test1);
-      uart_write_str(UART2, "\n Test 1: ");
-      uart_write_hex(UART2, (version*size*37)%8735;
-      uart_write_str(UART2, "\n Test 2: ");
+      uart_write_str(UART2, "\n Test 1 aes: ");
+      uart_write_hex(UART2, (version*size*37)%8735);
+      uart_write_str(UART2, "\n Test 2 firm: ");
       uart_write_hex(UART2, (size*size)%10276);
-      uart_write_str(UART2, "\n Test 3: ");
+      uart_write_str(UART2, "\n Test 3 meta: ");
       uart_write_hex(UART2, (version*43892)%(size%48202));
     
       // Initiate context structs for GCM
