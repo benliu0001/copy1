@@ -258,7 +258,7 @@ void load_firmware(void)
         randomcounter++;
           
         // Read the nonce.
-        for(i = 0; i < 16; i++){
+        for(i = 0; i < 16; i++){   
           iv[i] = uart_read(UART1, BLOCKING, &read);
         }
 
