@@ -30,7 +30,7 @@ FRAME_SIZE = 16
 #when implimenting the HMAC - add hmac as another argument
 def send_metadata(ser, metadata, debug=False):
     version, size, HMAC = struct.unpack_from('<HH32s', metadata)
-    print(f'**UPDATE TOOL** Version: {version}\nSize: {size} bytes\nHMAC: {HMAC}\n')
+    print(f'Version: {version}\nSize: {size} bytes\nHMAC: {HMAC}\n')
 
 
     # Handshake for update
@@ -79,6 +79,7 @@ def main(ser, infile, debug):
     #figure out how long hmac is
     #hmac = firmware_blob[4:36]
     firmware = firmware_blob[68:] #new line after HMAC is implemented: firmware = firmware_blob[36:]
+    print(metadata)
     
     send_metadata(ser, metadata, debug=debug)
     for idx, frame_start in enumerate(range(0, len(firmware), 1058)):

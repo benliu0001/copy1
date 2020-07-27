@@ -40,12 +40,13 @@ fp.write(B)
 fp.write(C)
 fp.write(D)
 fp.write(E)
+
 fp.close() #close fp (secret_build_output.txt file)
 
 def to_c_array(binary_string):
     return "{" + ",".join([hex(c) for c in binary_string]) + "}"
 def to_c_long(long):
-    number = struct.unpack('h', long)[0]
+    number = struct.unpack('H', long)[0]
     return "{" + f"{number}" + "}"
 def copy_initial_firmware(binary_path):
     """
@@ -74,6 +75,7 @@ def make_bootloader():
 #     if no stream cipher
 #     status = subprocess.call(f'make AESKEY={to_c_array(aeskey)} FIRMKEY={to_c_array(firmkey)} METAKEY={to_c_array(metakey)}', shell=True)
     status = subprocess.call(f'make SEED={to_c_array(seed)} AB={to_c_long(A)} BB={to_c_long(B)} CB={to_c_long(C)} DB={to_c_long(D)} EB={to_c_long(E)}', shell=True)
+
     # Return True if make returned 0, otherwise return False.
     return (status == 0)
 
