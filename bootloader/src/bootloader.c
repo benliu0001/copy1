@@ -117,14 +117,14 @@ void load_initial_firmware(void) {
   program_flash(FW_BASE + (i * FLASH_PAGESIZE), ((unsigned char *) data) + (i * FLASH_PAGESIZE), size % FLASH_PAGESIZE);
 }
 
-//COULDNT GET THE FUNCTION TO RETURN AN ARRAY
+
 void get_current_key(char* seed, char key[16], int startval){
     //Attempting to put in stream cipher (using aeskey) 
     //all variables should be compariable to the python stream cipher (just no seperate functions)
     int i;
     int K;
     char S_array[256];
-    for (i=0; i<256; i++){ //fills S_array in with values 0-255??
+    for (i=0; i<256; i++){ //fills S_array in with values 0-255
         S_array[i] = i;
     }
     int j=0;
