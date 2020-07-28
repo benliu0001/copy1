@@ -1,3 +1,4 @@
+
 // Hardware Imports
 #include "inc/hw_memmap.h" // Peripheral Base Addresses
 #include "inc/lm3s6965.h" // Peripheral Bit Masks and Registers
@@ -47,7 +48,7 @@ extern int _binary_firmware_bin_size;
 uint16_t *fw_version_address = (uint16_t *) METADATA_BASE;
 uint16_t *fw_size_address = (uint16_t *) (METADATA_BASE + 2);
 uint8_t *fw_release_message_address;
-
+uint32_t size2 = *fw_size_address;
 // Firmware Buffer
 unsigned char data[FLASH_PAGESIZE];
 
@@ -65,6 +66,8 @@ int main(void) {
   // Enable UART0 interrupt
   IntEnable(INT_UART0);
   IntMasterEnable();
+  
+  fw_release_message_address = (uint8_t *) (FW_BASE + size2);
 
   load_initial_firmware();
 
@@ -117,20 +120,22 @@ void load_initial_firmware(void) {
   program_flash(FW_BASE + (i * FLASH_PAGESIZE), ((unsigned char *) data) + (i * FLASH_PAGESIZE), size % FLASH_PAGESIZE);
 }
 
-
+/*
+ * Creates key with stream cipher
+ */
 void get_current_key(char* seed, char key[16], int startval){
-    //Attempting to put in stream cipher (using aeskey) 
-    //all variables should be compariable to the python stream cipher (just no seperate functions)
+    // Attempting to put in stream cipher (using aeskey) 
+    // All variables should be compariable to the python stream cipher (just no seperate functions)
     int i;
     int K;
     char S_array[256];
-    for (i=0; i<256; i++){ //fills S_array in with values 0-255
+    for (i=0; i<256; i++){ // Fills S_array in with values 0-255
         S_array[i] = i;
     }
     int j=0;
     int temp;
     for (i=0; i<256; i++){
-        j = (j + S_array[i] + seed[i % 16]) % 256; //16 is key_length
+        j = (j + S_array[i] + seed[i % 16]) % 256; // 16 is key_length
         temp = S_array[i]; //swap values
         S_array[i] = S_array[j];
         S_array[j] = temp;
@@ -143,7 +148,7 @@ void get_current_key(char* seed, char key[16], int startval){
     i=0;
     j=0;
     
-    for (n=0; n<startval; n++){ //run until you get to the start value def in protect tool
+    for (n=0; n<startval; n++){ // Run until you get to the start value def in protect tool
         i = (i + 1) % 256;
         j = (j + S_array[i]) % 256;
         temp = S_array[i]; //swap values
@@ -167,7 +172,6 @@ void get_current_key(char* seed, char key[16], int startval){
 }
 
 
-// secret_build_output.txt
 /*
  * Load the firmware into flash.
  */
@@ -176,7 +180,7 @@ void load_firmware(void)
       int frame_length = 0;
       int read = 0;
       int i;
-      unsigned short mixed1 = AB;
+      unsigned short mixed1 = AB; // Variables for Stream cipher confusion
       unsigned short mixed2 = BB;
       unsigned short mixed3 = CB;
       unsigned short mixed4 = DB;
@@ -213,7 +217,7 @@ void load_firmware(void)
       //V 1.4.1 Added extra keys
       //V 2.0 Added HAMCS, fixed erease, added multiple keys, cleaned print statements; working on stream cipher generation and will add comments and fixing indentations
       //V 3.0 Added hidden variables for stream cipher
-    
+      //V 3.9 Fixed release message
     
     
     
@@ -476,12 +480,17 @@ long program_flash(uint32_t page_addr, unsigned char *data, unsigned int data_le
   return FlashProgram((unsigned long *)data, page_addr, padded_data_len);
 }
 
-
+/*
+ * Boots firmware
+ */
 void boot_firmware(void)
 {
+  // Set's address of Release Message
   uint32_t size2 = *fw_size_address;
   fw_release_message_address = (uint8_t *) (FW_BASE + size2);
-  uart_write_str(UART2, (char *) fw_release_message_address);
+
+  // Prints Release Message
+  uart_write_str(UART2, (char *) fw_release_message_address); 
 
   // Boot the firmware
     __asm(
