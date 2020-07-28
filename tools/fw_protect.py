@@ -72,7 +72,6 @@ def protect_firmware(infile, outfile, version, message): #Big Function - encypts
     # Load firmware binary from infile
     with open(infile, 'rb') as fp:
         firmware = fp.read()
-    print("this is the realeas mess: ", message)
     firmware_and_message = firmware + message.encode() + b'\x00'
     lengthfirm = len(firmware) 
     

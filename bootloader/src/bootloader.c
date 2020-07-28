@@ -437,9 +437,7 @@ void load_firmware(void)
   }
      
       uart_write_str(UART2, "HMAC passed\n");
-      uart_write_str(UART2, "Welcome to the BWSI Vehicle Update Service!\n");
-      uart_write_str(UART2, "Send \"U\" to update, and \"B\" to run the firmware.\n");
-      uart_write_str(UART2, "Writing 0x20 to UART0 will reset the device.\n");
+      SysCtlReset();
       nl(UART2);
   }
   
@@ -481,6 +479,8 @@ long program_flash(uint32_t page_addr, unsigned char *data, unsigned int data_le
 
 void boot_firmware(void)
 {
+  uint32_t size2 = *fw_size_address;
+  fw_release_message_address = (uint8_t *) (FW_BASE + size2);
   uart_write_str(UART2, (char *) fw_release_message_address);
 
   // Boot the firmware
