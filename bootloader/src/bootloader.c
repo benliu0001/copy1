@@ -368,6 +368,7 @@ void load_firmware(void)
       erasingadd = 0x10000;
       uart_write_str(UART2, "Authentication failed");
       for(i = 0; i < pagecounter; i++){
+          nl(UART2);
           uart_write_str(UART2, "Deleting page: ");
           uart_write_hex(UART2, i + 1);
           uart_write_str(UART2, "...\n");
@@ -421,6 +422,7 @@ void load_firmware(void)
       if(comparehmac[i]!=hmac[i]){
           erasingadd = 0x10000;
           for(i = 0; i < pagecounter; i++){
+          nl(UART2);
           uart_write_str(UART2, "Deleting page: ");
           uart_write_hex(UART2, i + 1);
           uart_write_str(UART2, "...\n");
