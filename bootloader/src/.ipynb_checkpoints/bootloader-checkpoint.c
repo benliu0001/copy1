@@ -117,14 +117,14 @@ void load_initial_firmware(void) {
   program_flash(FW_BASE + (i * FLASH_PAGESIZE), ((unsigned char *) data) + (i * FLASH_PAGESIZE), size % FLASH_PAGESIZE);
 }
 
-//COULDNT GET THE FUNCTION TO RETURN AN ARRAY
+
 void get_current_key(char* seed, char key[16], int startval){
     //Attempting to put in stream cipher (using aeskey) 
     //all variables should be compariable to the python stream cipher (just no seperate functions)
     int i;
     int K;
     char S_array[256];
-    for (i=0; i<256; i++){ //fills S_array in with values 0-255??
+    for (i=0; i<256; i++){ //fills S_array in with values 0-255
         S_array[i] = i;
     }
     int j=0;
@@ -176,18 +176,18 @@ void load_firmware(void)
       int frame_length = 0;
       int read = 0;
       int i;
-      unsigned short hi = AB;
-      unsigned short there = BB;
-      unsigned short nice = CB;
-      unsigned short try = DB;
-      unsigned short buddy = EB;
+      unsigned short mixed1 = AB;
+      unsigned short mixed2 = BB;
+      unsigned short mixed3 = CB;
+      unsigned short mixed4 = DB;
+      unsigned short mixed5 = EB;
       uint16_t rcv = 0;
       char tag[16];
       size_t data_length, aad_length;
       aad_length = 4;
       char hmac[32];
       char metamac[32];
-      int randomcounter = 0;
+      int pagecounter = 0;
       int erasingadd = 0;
       char comparemeta[32];
       char comparehmac[32];
@@ -241,9 +241,9 @@ void load_firmware(void)
     
     
       //get all the keys
-      get_current_key(seed, aeskey, (version*size*hi)%there);
-      get_current_key(seed, firmkey, (size*size)%nice);
-      get_current_key(seed, metakey, (version*try)%(size%buddy));
+      get_current_key(seed, aeskey, (version*size*mixed1)%mixed2);
+      get_current_key(seed, firmkey, (size*size)%mixed3);
+      get_current_key(seed, metakey, (version*mixed4)%(size%mixed5));
     
       // Initiate context structs for GCM
       br_aes_ct_ctr_keys ctrc;
@@ -324,7 +324,7 @@ void load_firmware(void)
       while (1) {
           
         //Counts the amount of pages flashed 
-        randomcounter++;
+        pagecounter++;
           
         // Read the nonce.
         for(i = 0; i < 16; i++){   
@@ -367,7 +367,8 @@ void load_firmware(void)
       if(!br_gcm_check_tag(&gcmc, tag)) {
       erasingadd = 0x10000;
       uart_write_str(UART2, "Authentication failed");
-      for(i = 0; i < randomcounter; i++){
+      for(i = 0; i < pagecounter; i++){
+          nl(UART2);
           uart_write_str(UART2, "Deleting page: ");
           uart_write_hex(UART2, i + 1);
           uart_write_str(UART2, "...\n");
@@ -420,7 +421,8 @@ void load_firmware(void)
   for(i = 0; i < 32; i++){
       if(comparehmac[i]!=hmac[i]){
           erasingadd = 0x10000;
-          for(i = 0; i < randomcounter; i++){
+          for(i = 0; i < pagecounter; i++){
+          nl(UART2);
           uart_write_str(UART2, "Deleting page: ");
           uart_write_hex(UART2, i + 1);
           uart_write_str(UART2, "...\n");
@@ -435,8 +437,10 @@ void load_firmware(void)
   }
      
       uart_write_str(UART2, "HMAC passed\n");
+      uart_write_str(UART2, "Welcome to the BWSI Vehicle Update Service!\n");
+      uart_write_str(UART2, "Send \"U\" to update, and \"B\" to run the firmware.\n");
+      uart_write_str(UART2, "Writing 0x20 to UART0 will reset the device.\n");
       nl(UART2);
-      SysCtlReset();
   }
   
 

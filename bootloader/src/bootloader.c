@@ -437,8 +437,10 @@ void load_firmware(void)
   }
      
       uart_write_str(UART2, "HMAC passed\n");
+      uart_write_str(UART2, "Welcome to the BWSI Vehicle Update Service!\n");
+      uart_write_str(UART2, "Send \"U\" to update, and \"B\" to run the firmware.\n");
+      uart_write_str(UART2, "Writing 0x20 to UART0 will reset the device.\n");
       nl(UART2);
-      SysCtlReset();
   }
   
 
