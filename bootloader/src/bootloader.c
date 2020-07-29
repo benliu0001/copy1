@@ -190,6 +190,7 @@ void load_firmware(void)
       char tag[16];
       size_t data_length, aad_length;
       aad_length = 4;
+      uint32_t aesdata;
       char hmac[32];
       char metamac[32];
       int pagecounter = 0;
@@ -289,7 +290,7 @@ void load_firmware(void)
       // Creates metadata number
       
       int32_t metadata = ((size & 0xFFFF) << 16) | (version & 0xFFFF);
-    
+      aesdata = metadata;
       // Compute the HMAC for the meta data
       br_hmac_update(&hmetac, &metadata, 4);
       br_hmac_out(&hmetac, comparemeta);
@@ -317,6 +318,7 @@ void load_firmware(void)
       } else if (version == 0) {
         // If debug firmware, don't change version
         version = old_version;
+        metadata = ((size & 0xFFFF) << 16) | (version & 0xFFFF);
       }
 
       // Write new firmware size and version to Flash
@@ -324,7 +326,7 @@ void load_firmware(void)
       program_flash(METADATA_BASE, (uint8_t*)(&metadata), 4);
       fw_release_message_address = (uint8_t *) (FW_BASE + size);
       uart_write(UART1, OK); // Acknowledge the metadata.
-      
+      metadata = ((size & 0xFFFF) << 16) | (0x0 & 0xFFFF);
       /* Loop here until you can get all your characters and stuff */
       while (1) {
           
@@ -363,7 +365,7 @@ void load_firmware(void)
       br_gcm_reset(&gcmc, iv, iv_length);
           
       // Decrypt Data
-      br_gcm_aad_inject(&gcmc, &metadata ,aad_length);
+      br_gcm_aad_inject(&gcmc, &aesdata ,aad_length);
       br_gcm_flip(&gcmc);
       data_length = (size_t) data_index;
       br_gcm_run(&gcmc, 0, data, data_length);
